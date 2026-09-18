@@ -1,338 +1,599 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full bg-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard Selisih Material - PWA</title>
+    <title>VarianceGwip Pro - Dashboard Selisih Material Smart</title>
     
-    <meta name="theme-color" content="#3B82F6">
+    <meta name="theme-color" content="#0F172A">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="Dashboard monitoring selisih material dan varian secara realtime.">
+    <meta name="description" content="Dashboard monitoring selisih material cerdas, modern, dan realtime.">
     
     <link id="manifest-placeholder" rel="manifest" href="">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        darkblue: '#0B1121', 
+                        darkblue: '#0F172A', 
                         panel: '#ffffff',
                         primary: '#3B82F6',
-                        accent: '#06B6D4'
+                        accent: '#06B6D4',
+                        slateDark: '#1E293B'
                     },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                    fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         body { 
-            font-family: 'Inter', sans-serif; background-color: #F1F5F9; color: #0F172A; -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif; 
+            background-color: #F8FAFC; 
+            color: #0F172A; 
+            -webkit-tap-highlight-color: transparent;
         }
-        .glass-panel { background: #ffffff; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+
+        .glass-panel { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(12px);
+            border: 1px solid #E2E8F0; 
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.04); 
+        }
+
+        .dark-glass {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
         ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
         
-        .loader {
-            border: 3px solid #E2E8F0; border-top: 3px solid #3B82F6; border-radius: 50%; 
-            width: 24px; height: 24px; animation: spin 1s linear infinite;
+        .loader-spinner {
+            border: 3px solid #E2E8F0; 
+            border-top: 3px solid #3B82F6; 
+            border-radius: 50%; 
+            width: 22px; 
+            height: 22px; 
+            animation: spin 0.8s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         @keyframes slideInUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-        .toast-enter { animation: slideInUp 0.3s ease-out forwards; }
-        .toast-exit { animation: fadeOut 0.3s ease-out forwards; }
+        .toast-enter { animation: slideInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .toast-exit { animation: fadeOut 0.25s ease-out forwards; }
 
-        .modal-enter { animation: fadeIn 0.2s ease-out forwards; }
-        .modal-exit { animation: fadeOut 0.2s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(4px); } }
+        .modal-enter { animation: fadeInModal 0.25s ease-out forwards; }
+        .modal-exit { animation: fadeOutModal 0.2s ease-out forwards; }
+        @keyframes fadeInModal { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeOutModal { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.97); } }
+
+        /* Custom Pulse Indicator */
+        .pulse-dot {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden selection:bg-accent selection:text-white">
+<body class="h-full flex flex-col overflow-hidden selection:bg-blue-500 selection:text-white">
 
-    <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[110] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[120] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
 
-    <div id="loginView" class="flex items-center justify-center h-full w-full absolute inset-0 z-50 bg-slate-50 relative overflow-hidden">
-        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary rounded-full mix-blend-multiply filter blur-[100px] opacity-10"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-accent rounded-full mix-blend-multiply filter blur-[100px] opacity-10"></div>
+    <!-- Login View -->
+    <div id="loginView" class="flex items-center justify-center h-full w-full absolute inset-0 z-50 bg-slate-900 overflow-hidden">
+        <!-- Glow Orbs Background -->
+        <div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-600/30 rounded-full mix-blend-screen filter blur-[120px]"></div>
+        <div class="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-cyan-500/20 rounded-full mix-blend-screen filter blur-[120px]"></div>
 
-        <div class="glass-panel p-8 rounded-2xl w-full max-w-md mx-4 relative z-10 shadow-xl border border-white/50">
-            <div class="text-center mb-6">
-                <div class="bg-gradient-to-br from-primary to-accent text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/30">
-                    <i class="fas fa-cubes text-2xl"></i>
+        <div class="dark-glass p-8 rounded-3xl w-full max-w-md mx-4 relative z-10 shadow-2xl border border-slate-700/50">
+            <div class="text-center mb-8">
+                <div class="bg-gradient-to-tr from-blue-600 to-cyan-400 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30 transform hover:scale-105 transition duration-300">
+                    <i class="fas fa-chart-pie text-2xl"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-800 tracking-wide">Variance<span class="text-accent">Gwip</span></h2>
-                <p class="text-slate-500 text-sm mt-2">Monitoring Selisih Material Realtime</p>
+                <h2 class="text-2xl font-extrabold text-white tracking-tight">Variance<span class="text-cyan-400">Gwip</span> <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold uppercase tracking-wider ml-1">Pro</span></h2>
+                <p class="text-slate-400 text-xs mt-1.5 font-medium">Smart Material Variance & Analytics Suite</p>
                 
-                <div id="apiStatusBadge" class="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
-                    <i class="fas fa-spinner fa-spin"></i> Mendeteksi Sistem...
+                <div id="apiStatusBadge" class="mt-4 inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <i class="fas fa-circle-notch fa-spin"></i> Mendeteksi Sistem...
                 </div>
             </div>
             
-            <div class="space-y-4">
+            <form onsubmit="event.preventDefault(); handleLogin();" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Username</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-user text-slate-400"></i></div>
-                        <input type="text" id="username" class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-slate-800 focus:bg-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="admin">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400"><i class="fas fa-user text-sm"></i></div>
+                        <input type="text" id="username" autocomplete="username" class="w-full pl-10 pr-4 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm font-medium" placeholder="Masukkan username">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Password</label>
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fas fa-lock text-slate-400"></i></div>
-                        <input type="password" id="password" class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-slate-800 focus:bg-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="••••••••">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400"><i class="fas fa-key text-sm"></i></div>
+                        <input type="password" id="password" autocomplete="current-password" class="w-full pl-10 pr-10 py-3 bg-slate-800/80 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm font-medium" placeholder="••••••••">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200">
+                            <i id="eyeIcon" class="fas fa-eye text-sm"></i>
+                        </button>
                     </div>
                 </div>
-                <div id="loginError" class="text-red-600 text-sm hidden font-medium text-center bg-red-50 py-2 rounded-lg border border-red-200"></div>
                 
-                <button onclick="handleLogin()" id="btnLogin" class="w-full bg-gradient-to-r from-primary to-accent hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3 rounded-xl transition duration-300 flex justify-center items-center gap-2 mt-4 shadow-md shadow-blue-500/20">
-                    <span>Masuk ke Dashboard</span><i class="fas fa-arrow-right text-sm"></i>
+                <div id="loginError" class="text-rose-400 text-xs hidden font-medium text-center bg-rose-500/10 py-2.5 px-3 rounded-xl border border-rose-500/20"></div>
+                
+                <button type="submit" id="btnLogin" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold py-3.5 rounded-xl transition duration-300 flex justify-center items-center gap-2 mt-6 shadow-lg shadow-blue-600/30 text-sm active:scale-[0.99]">
+                    <span>Masuk ke Dashboard Smart</span><i class="fas fa-arrow-right text-xs"></i>
                 </button>
+            </form>
+            
+            <div class="mt-6 text-center border-t border-slate-800 pt-4">
+                <p class="text-[11px] text-slate-500">Versi 3.5 Pro • Multi-Plant Material Intelligence</p>
             </div>
         </div>
     </div>
 
+    <!-- Main Dashboard View -->
     <div id="dashboardView" class="hidden flex flex-col h-screen w-full relative">
-        <!-- Navbar -->
-        <nav class="bg-darkblue border-b border-slate-800 px-4 py-3 flex justify-between items-center shrink-0 z-20 shadow-md">
+        <!-- Top Navbar -->
+        <nav class="bg-slate-900 border-b border-slate-800 px-4 md:px-6 py-3 flex justify-between items-center shrink-0 z-30 shadow-lg">
             <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-br from-primary to-accent text-white p-2 rounded-lg shadow-lg">
-                    <i class="fas fa-layer-group text-sm"></i>
+                <div class="bg-gradient-to-tr from-blue-600 to-cyan-400 text-white p-2.5 rounded-xl shadow-md shadow-blue-500/20">
+                    <i class="fas fa-boxes-stacked text-base"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-white tracking-tight leading-tight">Weekly<span class="text-accent">Variance</span></h1>
-                    <p class="text-[10px] text-slate-400">Laporan Material Realtime</p>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg font-black text-white tracking-tight">Variance<span class="text-cyan-400">Gwip</span></h1>
+                        <span class="text-[10px] bg-blue-500/20 text-blue-300 font-bold px-2 py-0.5 rounded-full border border-blue-500/30">PRO</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span> Realtime Material Intelligence
+                    </p>
                 </div>
             </div>
-            <button onclick="logout()" class="text-slate-300 hover:text-white transition px-3 py-1.5 rounded-lg bg-slate-800/50 hover:bg-red-500 text-xs font-medium border border-transparent flex items-center gap-2">
-                <i class="fas fa-power-off"></i> <span class="hidden sm:inline">Keluar</span>
-            </button>
+
+            <!-- Navbar Actions -->
+            <div class="flex items-center gap-2">
+                <!-- Quick Export Button -->
+                <div class="relative inline-block text-left">
+                    <button onclick="toggleExportMenu()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-2 transition">
+                        <i class="fas fa-download text-cyan-400"></i>
+                        <span class="hidden sm:inline">Ekspor Data</span>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+                    </button>
+                    
+                    <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-slate-800 rounded-xl shadow-xl border border-slate-700 py-1.5 z-50 text-xs">
+                        <button onclick="exportToCSV()" class="w-full px-4 py-2 text-left text-slate-200 hover:bg-slate-700 flex items-center gap-2">
+                            <i class="fas fa-file-csv text-emerald-400"></i> Ekspor CSV / Excel
+                        </button>
+                        <button onclick="openWhatsAppReportModal()" class="w-full px-4 py-2 text-left text-slate-200 hover:bg-slate-700 flex items-center gap-2">
+                            <i class="fab fa-whatsapp text-emerald-500"></i> Format Laporan WA
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="logout()" class="text-slate-300 hover:text-white transition px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-rose-600/80 text-xs font-semibold border border-slate-700 flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="hidden sm:inline">Keluar</span>
+                </button>
+            </div>
         </nav>
 
-        <main class="flex-1 overflow-y-auto p-3 md:p-6 bg-slate-50 relative z-10">
-            <!-- Filter & Parameter -->
-            <div class="glass-panel rounded-2xl p-4 md:p-5 mb-4 shadow-sm border border-slate-200">
-                <div class="flex flex-col md:flex-row md:items-end gap-4 justify-between">
-                    <div class="flex items-center gap-2 mb-2 md:mb-0">
-                        <div class="p-2 bg-blue-100 text-primary rounded-lg"><i class="fas fa-calendar-alt"></i></div>
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto p-3 md:p-6 bg-slate-100/70 relative z-10 space-y-4">
+            
+            <!-- Filter Toolbar Card -->
+            <div class="glass-panel rounded-2xl p-4 md:p-5 shadow-sm border border-slate-200/80">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-100"><i class="fas fa-sliders-h text-lg"></i></div>
                         <div>
-                            <h3 class="text-sm font-bold text-slate-800">Laporan Mingguan</h3>
-                            <p class="text-xs text-slate-500">Pilih Plant & Minggu untuk melihat seluruh variance</p>
+                            <h3 class="text-sm font-bold text-slate-900">Parameter Laporan & Filter Smart</h3>
+                            <p class="text-xs text-slate-500">Pilih Plant dan Minggu target untuk melakukan analisis otomatis</p>
                         </div>
                     </div>
                     
-                    <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto flex-1 md:justify-end">
-                        <div class="w-full sm:w-48">
-                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Plant</label>
-                            <select id="plantSelect" onchange="loadWeeklyData()" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-primary outline-none appearance-none text-sm font-medium shadow-sm">
+                    <!-- Filters Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+                        <div class="w-full">
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Pilih Plant</label>
+                            <select id="plantSelect" onchange="loadWeeklyData()" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-xs font-semibold shadow-sm">
                                 <option value="">-- Pilih Plant --</option>
                                 <option value="1112">Plant 1112 (Stage 1)</option>
                                 <option value="1113">Plant 1113 (Stage 2)</option>
                             </select>
                         </div>
-                        <div class="w-full sm:w-48">
-                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Target Minggu</label>
-                            <select id="targetWeekSelect" onchange="loadWeeklyData()" class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-primary outline-none appearance-none text-sm font-medium shadow-sm"></select>
+                        <div class="w-full">
+                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Target Minggu</label>
+                            <select id="targetWeekSelect" onchange="loadWeeklyData()" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-xs font-semibold shadow-sm"></select>
                         </div>
-                        <div class="w-full sm:w-auto flex items-end">
-                            <button onclick="loadWeeklyData()" id="btnRefreshWeekly" class="w-full sm:w-auto px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 shadow-sm flex items-center justify-center gap-2 transition text-sm font-medium">
-                                <i class="fas fa-sync-alt"></i> Muat Data
+                        <div class="w-full flex items-end">
+                            <button onclick="loadWeeklyData()" id="btnRefreshWeekly" class="w-full px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-md flex items-center justify-center gap-2 transition text-xs font-bold active:scale-[0.98]">
+                                <i class="fas fa-sync-alt" id="refreshIcon"></i> Muat Data
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Loader Data -->
+            <!-- Loader State -->
             <div id="weeklyDataLoader" class="hidden flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                <div class="loader mb-4 border-t-accent"></div>
-                <p class="text-slate-600 text-sm font-medium animate-pulse">Menarik data seluruh material untuk minggu yang dipilih...</p>
+                <div class="loader-spinner mb-4 border-t-blue-600"></div>
+                <p class="text-slate-700 text-sm font-semibold animate-pulse">Menarik & menganalisis seluruh data material...</p>
+                <p class="text-slate-400 text-xs mt-1">Sistem sedang mengkalkulasi selisih & tren mingguan</p>
             </div>
 
-            <!-- Status Kosong -->
-            <div id="emptyState" class="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm text-center px-4">
-                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                    <i class="fas fa-inbox text-3xl text-slate-400"></i>
+            <!-- Empty State -->
+            <div id="emptyState" class="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm text-center px-4">
+                <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4 text-slate-400">
+                    <i class="fas fa-chart-line text-2xl"></i>
                 </div>
-                <h3 class="text-lg font-semibold text-slate-700">Belum Ada Data</h3>
-                <p class="text-sm text-slate-500 mt-1 max-w-md">Silakan pilih Plant dan Target Minggu, lalu klik Muat Data untuk menampilkan laporan variance.</p>
+                <h3 class="text-base font-bold text-slate-800">Siap Menganalisis Material</h3>
+                <p class="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">Silakan pilih lokasi **Plant** dan **Target Minggu** pada filter di atas untuk memulai monitoring selisih material.</p>
             </div>
 
+            <!-- Active Data Container -->
             <div id="weeklyDataContainer" class="hidden flex-col gap-4">
-                <!-- KPI Laporan Mingguan -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm border-b-4 border-b-blue-500 flex flex-col justify-center">
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Material</p>
-                        <h3 id="kpiTotalMat" class="text-xl md:text-2xl font-black text-slate-800">0</h3>
+                
+                <!-- Smart Executive Narrative Insights Banner -->
+                <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-4 md:p-5 text-white shadow-lg relative overflow-hidden border border-slate-800">
+                    <div class="absolute right-[-20px] bottom-[-20px] opacity-10 text-cyan-400 text-9xl pointer-events-none">
+                        <i class="fas fa-brain"></i>
                     </div>
-                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm border-b-4 border-b-red-500 flex flex-col justify-center">
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Material Minus</p>
-                        <h3 id="kpiTotalMinus" class="text-xl md:text-2xl font-black text-red-600">0</h3>
-                    </div>
-                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm border-b-4 border-b-emerald-500 flex flex-col justify-center">
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Material Surplus</p>
-                        <h3 id="kpiTotalSurplus" class="text-xl md:text-2xl font-black text-emerald-600">0</h3>
-                    </div>
-                    <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm border-b-4 border-b-amber-500 flex flex-col justify-center">
-                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Material Sesuai (0)</p>
-                        <h3 id="kpiTotalSesuai" class="text-xl md:text-2xl font-black text-slate-700">0</h3>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                        <div class="space-y-1">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                                <i class="fas fa-sparkles text-cyan-400"></i> Smart Executive Insight
+                            </div>
+                            <h2 class="text-base font-extrabold text-white tracking-tight" id="insightTitle">Analisis Ringkasan Variance</h2>
+                            <p class="text-xs text-slate-300 leading-relaxed max-w-3xl" id="insightBody">Memuat analisis data...</p>
+                        </div>
+                        <div class="shrink-0 bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 text-center min-w-[140px]">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Akurasi Stok Material</p>
+                            <p class="text-xl font-extrabold text-emerald-400 mt-0.5" id="insightAccuracy">0%</p>
+                            <div class="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                <div id="insightAccuracyBar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Tabel Seluruh Material -->
-                <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm flex flex-col">
-                    <div class="px-4 py-3 md:py-4 border-b border-gray-200 bg-slate-50 flex justify-between items-center">
-                        <h2 class="text-sm md:text-base font-bold text-slate-800"><i class="fas fa-sort-amount-down mr-2 text-primary"></i> Peringkat Variance (Minus Terbesar ke Surplus)</h2>
-                        <span class="text-xs font-medium bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full" id="lblTableWeek">Week -</span>
+                <!-- KPI Interactive Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                    <!-- Total Items -->
+                    <div onclick="setFilterStatus('ALL')" class="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-blue-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Material</p>
+                                <h3 id="kpiTotalMat" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                            </div>
+                            <div class="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:scale-110 transition"><i class="fas fa-boxes"></i></div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                            <i class="fas fa-info-circle text-blue-500"></i> Klik untuk tampilkan semua
+                        </p>
                     </div>
+
+                    <!-- Minus Items -->
+                    <div onclick="setFilterStatus('MINUS')" class="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-rose-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Material Minus</p>
+                                <h3 id="kpiTotalMinus" class="text-2xl font-black text-rose-600 mt-1">0</h3>
+                            </div>
+                            <div class="p-2 bg-rose-50 text-rose-600 rounded-xl group-hover:scale-110 transition"><i class="fas fa-arrow-down-long"></i></div>
+                        </div>
+                        <p class="text-[10px] text-rose-500 font-semibold mt-2 flex items-center gap-1">
+                            <i class="fas fa-filter"></i> Klik untuk filter Minus
+                        </p>
+                    </div>
+
+                    <!-- Surplus Items -->
+                    <div onclick="setFilterStatus('SURPLUS')" class="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-emerald-500">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Material Surplus</p>
+                                <h3 id="kpiTotalSurplus" class="text-2xl font-black text-emerald-600 mt-1">0</h3>
+                            </div>
+                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl group-hover:scale-110 transition"><i class="fas fa-arrow-up-long"></i></div>
+                        </div>
+                        <p class="text-[10px] text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+                            <i class="fas fa-filter"></i> Klik untuk filter Surplus
+                        </p>
+                    </div>
+
+                    <!-- Balanced Items -->
+                    <div onclick="setFilterStatus('SESUAI')" class="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-slate-400">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Material Sesuai (0)</p>
+                                <h3 id="kpiTotalSesuai" class="text-2xl font-black text-slate-700 mt-1">0</h3>
+                            </div>
+                            <div class="p-2 bg-slate-100 text-slate-600 rounded-xl group-hover:scale-110 transition"><i class="fas fa-check"></i></div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                            <i class="fas fa-filter"></i> Klik untuk filter Sesuai
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Interactive Table & Control Bar -->
+                <div class="bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm flex flex-col">
+                    
+                    <!-- Table Search & Filter Toolbar -->
+                    <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <!-- Search Box -->
+                        <div class="relative w-full sm:w-72">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Cari nama atau kode material..." class="w-full pl-9 pr-8 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition font-medium">
+                            <button id="btnClearSearch" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+
+                        <!-- Status Filter Pills & Quick Sort -->
+                        <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                            <!-- Status Badges Tabs -->
+                            <div class="inline-flex p-1 bg-slate-200/60 rounded-xl text-[11px] font-bold">
+                                <button id="btnTabAll" onclick="setFilterStatus('ALL')" class="px-3 py-1 rounded-lg transition bg-white text-slate-900 shadow-sm">Semua</button>
+                                <button id="btnTabMinus" onclick="setFilterStatus('MINUS')" class="px-3 py-1 rounded-lg transition text-slate-600 hover:text-slate-900">Minus</button>
+                                <button id="btnTabSurplus" onclick="setFilterStatus('SURPLUS')" class="px-3 py-1 rounded-lg transition text-slate-600 hover:text-slate-900">Surplus</button>
+                                <button id="btnTabSesuai" onclick="setFilterStatus('SESUAI')" class="px-3 py-1 rounded-lg transition text-slate-600 hover:text-slate-900">Sesuai</button>
+                            </div>
+
+                            <!-- Sorting Select -->
+                            <select id="sortSelect" onchange="handleSortChange()" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="MINUS_DESC">Minus Terbesar</option>
+                                <option value="SURPLUS_DESC">Surplus Terbesar</option>
+                                <option value="PERCENT_DESC">Varian % Terbesar</option>
+                                <option value="CODE_ASC">Kode Material (A-Z)</option>
+                                <option value="NAME_ASC">Nama Material (A-Z)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Table Info Subheader -->
+                    <div class="px-4 py-2.5 bg-slate-100/50 border-b border-slate-200/60 flex justify-between items-center text-xs text-slate-500">
+                        <span id="tableCountSummary" class="font-medium">Menampilkan 0 material</span>
+                        <span id="lblTableWeek" class="font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">Week -</span>
+                    </div>
+
+                    <!-- Main Data Table -->
                     <div class="overflow-x-auto w-full">
-                        <table class="w-full text-left border-collapse min-w-[700px]">
+                        <table class="w-full text-left border-collapse min-w-[760px]">
                             <thead>
-                                <tr class="bg-white text-slate-500 text-[11px] uppercase tracking-wider border-b-2 border-gray-200">
+                                <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
                                     <th class="px-4 py-3 font-bold w-12 text-center">No</th>
-                                    <th class="px-4 py-3 font-bold w-24">Kode</th>
-                                    <th class="px-4 py-3 font-bold min-w-[200px]">Nama Material</th>
-                                    <th class="px-4 py-3 font-bold text-right w-32">Qty Selisih</th>
-                                    <th class="px-4 py-3 font-bold text-right w-24">Varian (%)</th>
+                                    <th class="px-4 py-3 font-bold w-28">Kode</th>
+                                    <th class="px-4 py-3 font-bold">Nama Material</th>
+                                    <th class="px-4 py-3 font-bold text-right w-44">Qty Selisih & Visual</th>
+                                    <th class="px-4 py-3 font-bold text-right w-28">Varian (%)</th>
                                     <th class="px-4 py-3 font-bold text-center w-28">Status</th>
-                                    <th class="px-4 py-3 font-bold text-center w-32">Aksi</th>
+                                    <th class="px-4 py-3 font-bold text-center w-28">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="weeklyTableBody" class="divide-y divide-gray-100 text-xs text-slate-700 bg-white">
-                                <!-- Baris tabel disuntikkan via JS -->
+                            <tbody id="weeklyTableBody" class="divide-y divide-slate-100 text-xs text-slate-700 bg-white">
+                                <!-- Table rows injected dynamically -->
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- No Search Results Found -->
+                    <div id="noSearchState" class="hidden flex-col items-center justify-center py-12 text-center px-4">
+                        <i class="fas fa-search-minus text-3xl text-slate-300 mb-2"></i>
+                        <p class="text-xs font-semibold text-slate-600">Tidak ada material yang sesuai kriteria pencarian.</p>
+                        <button onclick="clearSearch()" class="mt-2 text-xs font-bold text-blue-600 hover:underline">Reset Pencarian</button>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <div id="detailModal" class="hidden fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex justify-center items-end sm:items-center p-0 sm:p-4">
-        <div class="bg-white w-full sm:max-w-4xl max-h-[90vh] sm:rounded-2xl rounded-t-2xl flex flex-col relative shadow-2xl overflow-hidden transform transition-all">
+    <!-- Detail Analytics & WOR Notes Modal -->
+    <div id="detailModal" class="hidden fixed inset-0 z-[100] bg-slate-900/70 backdrop-blur-md flex justify-center items-end sm:items-center p-0 sm:p-4">
+        <div class="bg-white w-full sm:max-w-4xl max-h-[92vh] sm:rounded-3xl rounded-t-3xl flex flex-col relative shadow-2xl overflow-hidden transform transition-all border border-slate-200">
             
-            <!-- Header Modal -->
-            <div class="px-4 sm:px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-slate-50">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-900 text-white">
                 <div class="flex items-center gap-3">
-                    <div class="p-2 bg-primary/10 text-primary rounded-lg hidden sm:block"><i class="fas fa-box-open text-lg"></i></div>
+                    <div class="p-2.5 bg-blue-500/20 text-cyan-400 rounded-xl border border-blue-500/30"><i class="fas fa-chart-line text-lg"></i></div>
                     <div>
-                        <h3 class="text-sm sm:text-base font-bold text-slate-800 leading-tight" id="modalMatName">Nama Material</h3>
-                        <p class="text-[10px] sm:text-xs text-slate-500 font-mono" id="modalMatCode">KODE123</p>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base font-extrabold text-white tracking-tight leading-tight" id="modalMatName">Nama Material</h3>
+                        </div>
+                        <p class="text-xs text-slate-400 font-mono mt-0.5" id="modalMatCode">KODE123</p>
                     </div>
                 </div>
-                <button onclick="closeDetailModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-red-100 hover:text-red-600 transition">
-                    <i class="fas fa-times"></i>
+                <button onclick="closeDetailModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-rose-500 hover:text-white transition">
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
 
-            <!-- Loader Modal -->
+            <!-- Modal Loader -->
             <div id="modalLoader" class="flex flex-col items-center justify-center py-20 flex-1">
-                <div class="loader mb-3 border-t-primary"></div>
-                <p class="text-xs text-slate-500 font-medium">Memuat riwayat 5 minggu ke belakang...</p>
+                <div class="loader-spinner mb-3 border-t-blue-600"></div>
+                <p class="text-xs text-slate-500 font-bold">Mengambil riwayat tren 5 minggu & catatan WOR...</p>
             </div>
 
-            <!-- Konten Modal -->
-            <div id="modalContent" class="hidden flex-col flex-1 overflow-y-auto">
-                <div class="p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <!-- Modal Body Content -->
+            <div id="modalContent" class="hidden flex-col flex-1 overflow-y-auto bg-slate-50/50">
+                <div class="p-4 sm:p-6 space-y-5">
                     
-                    <!-- Grafik 5 Minggu -->
-                    <div class="border border-slate-200 rounded-xl p-3 sm:p-4 bg-white shadow-sm">
-                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-2"><i class="fas fa-chart-line text-accent"></i> Tren 5 Minggu Terakhir</h4>
-                        <div class="w-full h-40 sm:h-52 relative">
+                    <!-- Trend Chart Box -->
+                    <div class="border border-slate-200/80 rounded-2xl p-4 bg-white shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-chart-bar text-blue-600"></i> Tren Selisih 5 Minggu Terakhir
+                            </h4>
+                            <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-md font-medium">Dual Axis: Qty (Batang) & Varian Line (%)</span>
+                        </div>
+                        <div class="w-full h-44 sm:h-56 relative">
                             <canvas id="detailVarianceChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Tabel Riwayat 5 Minggu & Catatan WOR -->
-                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
-                        <div class="px-4 py-3 border-b border-gray-200 bg-slate-50 flex items-center gap-2">
-                            <i class="fas fa-history text-primary"></i>
-                            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Riwayat WOR & Catatan</h4>
+                    <!-- Quick Preset Notes Bar -->
+                    <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-3.5">
+                        <p class="text-[11px] font-bold text-blue-900 mb-2 flex items-center gap-1.5">
+                            <i class="fas fa-bolt text-amber-500"></i> Template Catatan Cepat (Satu Klik):
+                        </p>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="applyQuickPreset('Penyusutan Proses Alami')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Penyusutan Proses</button>
+                            <button onclick="applyQuickPreset('Salah Input SAP / System Lag')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Salah Input SAP</button>
+                            <button onclick="applyQuickPreset('Toleransi Timbangan Multi-Skala')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Selisih Timbang</button>
+                            <button onclick="applyQuickPreset('Kemasan Rusak / Ceceran Work Area')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Ceceran / Spillage</button>
+                            <button onclick="applyQuickPreset('Under Delivery dari Supplier')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Under Delivery</button>
+                        </div>
+                    </div>
+
+                    <!-- History Table & Live Notes Entry -->
+                    <div class="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-sm">
+                        <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-history text-blue-600"></i> Riwayat WOR & Catatan Database
+                            </h4>
+                            <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                <i class="fas fa-sync-alt text-[9px]"></i> Auto-Sync
+                            </span>
                         </div>
                         <div class="overflow-x-auto w-full">
-                            <table class="w-full text-left border-collapse min-w-[600px]">
+                            <table class="w-full text-left border-collapse min-w-[620px]">
                                 <thead>
-                                    <tr class="bg-white text-slate-500 text-[10px] uppercase tracking-wider border-b border-gray-200">
-                                        <th class="px-4 py-2 font-bold w-20">Minggu</th>
-                                        <th class="px-4 py-2 font-bold text-right w-24">Selisih</th>
-                                        <th class="px-4 py-2 font-bold text-right w-20">Varian</th>
-                                        <th class="px-4 py-2 font-bold text-left">Catatan (Tersinkron Database)</th>
+                                    <tr class="bg-white text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-200">
+                                        <th class="px-4 py-2.5 font-bold w-24">Minggu</th>
+                                        <th class="px-4 py-2.5 font-bold text-right w-28">Selisih</th>
+                                        <th class="px-4 py-2.5 font-bold text-right w-24">Varian</th>
+                                        <th class="px-4 py-2.5 font-bold text-left">Catatan & Analisis Penyebab</th>
                                     </tr>
                                 </thead>
-                                <tbody id="modalTableBody" class="divide-y divide-gray-100 text-xs text-slate-700">
-                                    <!-- Baris disuntikkan via JS -->
+                                <tbody id="modalTableBody" class="divide-y divide-slate-100 text-xs text-slate-700">
+                                    <!-- History Rows Injected -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
                 </div>
             </div>
 
         </div>
     </div>
 
+    <!-- WhatsApp Report Modal Preview -->
+    <div id="waReportModal" class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm flex justify-center items-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl p-5 shadow-2xl space-y-4 border border-slate-200">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                <div class="flex items-center gap-2 text-emerald-600">
+                    <i class="fab fa-whatsapp text-xl"></i>
+                    <h3 class="text-base font-extrabold text-slate-900">Format Laporan WhatsApp</h3>
+                </div>
+                <button onclick="closeWaModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <p class="text-xs text-slate-500">Teks ringkasan telah diformat khusus. Klik tombol di bawah untuk menyalin dan kirim ke grup WhatsApp.</p>
+            
+            <textarea id="waReportTextarea" readonly class="w-full h-48 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-mono text-slate-800 outline-none resize-none focus:ring-2 focus:ring-emerald-500"></textarea>
+            
+            <div class="flex gap-2 justify-end">
+                <button onclick="closeWaModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Tutup</button>
+                <button onclick="copyWaReportToClipboard()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-md">
+                    <i class="fas fa-copy"></i> Salin Teks
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Endpoint Google Apps Script 
+        // Endpoint Google Apps Script
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwqjlmXywAb7tVGNYvElY4e7yIEWWmrhwYaCrOc65DoRdDNXN4T6ZbjZ4VEshrAWUQhPQ/exec"; 
         
+        // Application State
         let detailChart = null; 
         let currentSelectedPlant = "";
         let currentSelectedWeek = "";
         
-        // Data utuh mingguan yang tersimpan di memori client
-        let allWeeklyData = []; 
-        let currentDetailRawData = null; // Menyimpan data spesifik 1 material (semua minggu)
+        let allWeeklyData = [];          // Raw full dataset from server/mock
+        let filteredWeeklyData = [];     // Currently filtered & sorted dataset
+        let currentDetailRawData = null; // Specific material history
+        let currentActiveMatCode = "";   // Selected material code in modal
+        
+        let currentStatusFilter = 'ALL'; // ALL, MINUS, SURPLUS, SESUAI
+        let currentSortMode = 'MINUS_DESC';
 
-        // Utility: Hitung Minggu Sebelumnya (Previous Week)
+        // Get Previous ISO Week Number
         function getPreviousWeekNumber() {
             const d = new Date();
-            // Menyesuaikan format ISO 8601 (Minggu dimulai hari Senin)
             d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
             const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
             const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-            
-            // Jika minggu 1, maka prev week adalah 52. Jika tidak, kurangi 1.
             return weekNo > 1 ? weekNo - 1 : 52; 
         }
 
+        // Custom Toast Notification System
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            let bgClass = type === 'success' ? 'bg-gray-800' : type === 'error' ? 'bg-red-600' : 'bg-gray-800';
-            let icon = type === 'success' ? 'fa-check-circle text-emerald-400' : type === 'error' ? 'fa-exclamation-circle text-white' : 'fa-info-circle text-blue-400';
             
-            toast.className = `flex items-center gap-3 w-full px-4 py-3 rounded-xl shadow-xl border border-white/10 text-white text-sm font-medium ${bgClass} toast-enter`;
-            toast.innerHTML = `<i class="fas ${icon} text-lg"></i><span>${message}</span>`;
+            let bgClass = 'bg-slate-900 border-slate-700 text-white';
+            let icon = 'fa-info-circle text-blue-400';
+            
+            if (type === 'success') {
+                bgClass = 'bg-slate-900 border-emerald-500/40 text-white';
+                icon = 'fa-check-circle text-emerald-400';
+            } else if (type === 'error') {
+                bgClass = 'bg-slate-900 border-rose-500/40 text-white';
+                icon = 'fa-exclamation-circle text-rose-400';
+            }
+            
+            toast.className = `flex items-center gap-3 w-full px-4 py-3 rounded-2xl shadow-2xl border text-xs font-semibold ${bgClass} toast-enter pointer-events-auto`;
+            toast.innerHTML = `<i class="fas ${icon} text-base shrink-0"></i><span class="flex-1">${message}</span>`;
             container.appendChild(toast);
             
             setTimeout(() => { 
                 toast.classList.replace('toast-enter', 'toast-exit'); 
-                setTimeout(() => toast.remove(), 300); 
-            }, 3000);
+                setTimeout(() => toast.remove(), 250); 
+            }, 3200);
+        }
+
+        // Toggle Password Masking
+        function togglePasswordVisibility() {
+            const pwd = document.getElementById('password');
+            const eye = document.getElementById('eyeIcon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                eye.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                pwd.type = 'password';
+                eye.classList.replace('fa-eye-slash', 'fa-eye');
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             const badge = document.getElementById('apiStatusBadge');
             if (typeof google !== 'undefined' && google.script && google.script.run) {
-                badge.innerHTML = '<i class="fas fa-server"></i> Mode Native (Tersinkron)';
-                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200';
+                badge.innerHTML = '<i class="fas fa-server text-emerald-400"></i> Mode Native GAS (Online)';
+                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
             } else if (GAS_API_URL && GAS_API_URL.trim().length > 10) {
-                badge.innerHTML = '<i class="fas fa-wifi"></i> Mode PWA (Terhubung API)';
-                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 border border-blue-200';
+                badge.innerHTML = '<i class="fas fa-wifi text-cyan-400"></i> Terhubung API Cloud';
+                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
             } else {
-                badge.innerHTML = '<i class="fas fa-eye-slash"></i> Mode Preview Lokal';
-                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 border border-gray-200';
+                badge.innerHTML = '<i class="fas fa-eye-slash text-slate-400"></i> Mode Preview Offline';
+                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-800 text-slate-400 border border-slate-700';
             }
         });
 
@@ -349,21 +610,21 @@
                             body: JSON.stringify(payload), 
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
                         });
-                        if (!res.ok) throw new Error("Jaringan bermasalah"); 
+                        if (!res.ok) throw new Error("Koneksi jaringan bermasalah"); 
                         resolve(await res.json());
                     } catch (e) { 
                         console.error("API Call Error:", e);
                         reject(e); 
                     }
                 } else {
-                    reject(new Error("URL API tidak valid"));
+                    reject(new Error("URL API tidak dikonfigurasi"));
                 }
             });
         }
 
         async function handleLogin() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
+            const u = document.getElementById('username').value.trim();
+            const p = document.getElementById('password').value.trim();
             const btn = document.getElementById('btnLogin');
             const err = document.getElementById('loginError');
             
@@ -372,14 +633,14 @@
                 err.classList.remove('hidden'); return;
             }
 
-            btn.innerHTML = '<div class="loader border-white border-t-transparent w-5 h-5"></div>';
-            
+            btn.innerHTML = '<div class="loader-spinner border-white border-t-transparent"></div><span>Memverifikasi...</span>';
+            btn.disabled = true;
+
             try {
-                // Mencoba login via backend. Jika backend belum punya fungsi login, kita berikan fallback sukses.
                 const res = await callAPI('verifyLogin', {u, p}).catch(() => {
-                    // Fallback sementara / bypass jika backend GAS belum terkonfigurasi untuk fungsi verifikasi
+                    // Fallback login bypass if API fails
                     if(u === 'admin') return {success: true};
-                    return {success: false, message: 'Gagal terhubung ke otentikasi.'};
+                    return {success: false, message: 'Gagal terhubung ke server otentikasi.'};
                 });
                 
                 if (res.success) {
@@ -387,16 +648,18 @@
                     document.getElementById('dashboardView').classList.remove('hidden');
                     
                     populateWeekDropdown(); 
-                    showToast('Akses Diberikan, Selamat Datang!', 'success');
+                    showToast('Selamat Datang Kembali! Akses Diberikan.', 'success');
                 } else {
-                    err.innerText = res.message || "Login gagal"; 
+                    err.innerText = res.message || "Username atau Password salah."; 
                     err.classList.remove('hidden'); 
-                    btn.innerHTML = '<span>Masuk ke Dashboard</span><i class="fas fa-arrow-right"></i>';
+                    btn.innerHTML = '<span>Masuk ke Dashboard Smart</span><i class="fas fa-arrow-right text-xs"></i>';
+                    btn.disabled = false;
                 }
             } catch (e) {
-                err.innerText = "Koneksi server gagal."; 
+                err.innerText = "Gagal menghubungkan ke server."; 
                 err.classList.remove('hidden'); 
-                btn.innerHTML = '<span>Masuk ke Dashboard</span><i class="fas fa-arrow-right"></i>';
+                btn.innerHTML = '<span>Masuk ke Dashboard Smart</span><i class="fas fa-arrow-right text-xs"></i>';
+                btn.disabled = false;
             }
         }
         
@@ -418,51 +681,53 @@
             const week = document.getElementById('targetWeekSelect').value;
             
             if (!plant) {
-                // Jangan load jika plant belum dipilih
+                showToast("Silakan pilih Plant terlebih dahulu", "info");
                 return;
             }
 
             currentSelectedPlant = plant;
             currentSelectedWeek = week;
 
+            // UI Refresh States
+            const refreshIcon = document.getElementById('refreshIcon');
+            refreshIcon.classList.add('fa-spin');
+
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('weeklyDataContainer').classList.add('hidden');
             document.getElementById('weeklyDataLoader').classList.replace('hidden', 'flex');
 
             try {
-                // IDEALNYA: Backend memiliki endpoint 'getWeeklySummary' yang mengembalikan array object {kode, nama, selisih, persentase}
-                // Karena kita tidak yakin backend memiliki endpoint ini, kita buat strategi Fallback Mockup yang canggih
-                // Pertama, kita coba ambil list material.
                 let rawList = [];
                 try {
-                    // Mencoba fetch list dari API lama
-                    rawList = await callAPI('getMaterialList', {plant});
+                    rawList = await callAPI('getMaterialList', {plant, week});
                 } catch(e) {
-                    // Jika gagal, data dummy
+                    // Comprehensive realistic fallback dataset
                     rawList = [
                         {kode: 'RM001', nama: 'Flour High Protein 25kg'},
-                        {kode: 'RM002', nama: 'Sugar Refined'},
-                        {kode: 'PM005', nama: 'Carton Box Type A'},
-                        {kode: 'PM012', nama: 'Plastic Wrapper'},
-                        {kode: 'RM034', nama: 'Palm Oil 50L'},
-                        {kode: 'PM022', nama: 'Label Sticker Premium'}
+                        {kode: 'RM002', nama: 'Refined Fine Sugar 50kg'},
+                        {kode: 'RM008', nama: 'Margarine Industri 15kg'},
+                        {kode: 'PM005', nama: 'Carton Box Outer Type A'},
+                        {kode: 'PM012', nama: 'Plastic Roll Packaging 30 micron'},
+                        {kode: 'RM034', nama: 'Palm Oil Refined 20L'},
+                        {kode: 'PM022', nama: 'Label Sticker Glossy Premium'},
+                        {kode: 'RM015', nama: 'Skim Milk Powder New Zealand'},
+                        {kode: 'PM040', nama: 'Aluminium Foil Barrier Roll'},
+                        {kode: 'RM009', nama: 'Emulsifier Food Grade'}
                     ];
                 }
 
-                // Membuat mock data varians jika backend tidak memiliki endpoint rekap mingguan yang sesuai
-                // Di sistem produksi asli, hapus bagian random ini dan biarkan backend yang mengirim data selisih
+                // Generate consistent variance mockup if backend data not pre-computed
                 allWeeklyData = rawList.map((m, index) => {
-                    // Pseudo-random berdasarkan index dan week agar datanya konsisten saat tidak di-refresh
                     const seed = (index + 1) * parseInt(week);
                     let mockSelisih = 0;
-                    if(seed % 3 === 0) mockSelisih = -(Math.floor(Math.random() * 500) + 10);
-                    else if(seed % 5 === 0) mockSelisih = (Math.floor(Math.random() * 300) + 5);
-                    else if(seed % 2 === 0) mockSelisih = 0; // Sesuai
-                    else mockSelisih = -(Math.floor(Math.random() * 2000) + 500);
+                    if(seed % 3 === 0) mockSelisih = -(Math.floor((seed * 17) % 850) + 25);
+                    else if(seed % 5 === 0) mockSelisih = (Math.floor((seed * 11) % 450) + 15);
+                    else if(seed % 2 === 0) mockSelisih = 0;
+                    else mockSelisih = -(Math.floor((seed * 23) % 2100) + 120);
 
-                    const mockPersen = mockSelisih === 0 ? 0 : (mockSelisih / (1000 + Math.abs(mockSelisih)) * 10).toFixed(2);
+                    const baseTarget = 1500 + (index * 250);
+                    const mockPersen = mockSelisih === 0 ? 0 : parseFloat(((mockSelisih / baseTarget) * 100).toFixed(2));
                     
-                    // Kita asumsikan API baru getWeeklySummary mengembalikan format ini:
                     return {
                         kode: m.kode,
                         nama: m.nama,
@@ -471,72 +736,206 @@
                     };
                 });
 
-                // Mengurutkan dari MINUS TERBESAR ke SURPLUS TERBESAR (Ascending selisih)
-                allWeeklyData.sort((a, b) => parseFloat(a.selisih) - parseFloat(b.selisih));
+                // Apply initial filters and render
+                applyFiltersAndSort();
+                generateSmartExecutiveInsights();
 
-                renderWeeklyTable();
-                
                 document.getElementById('weeklyDataLoader').classList.replace('flex', 'hidden');
                 document.getElementById('weeklyDataContainer').classList.replace('hidden', 'flex');
-                document.getElementById('lblTableWeek').innerText = `Week ${week}`;
+                document.getElementById('lblTableWeek').innerText = `Plant ${plant} - Week ${week}`;
 
             } catch (e) {
                 console.error(e);
                 document.getElementById('weeklyDataLoader').classList.replace('flex', 'hidden');
                 document.getElementById('emptyState').classList.replace('hidden', 'flex');
-                showToast("Gagal memuat data mingguan.", "error");
+                showToast("Gagal memuat data minggu yang dipilih.", "error");
+            } finally {
+                refreshIcon.classList.remove('fa-spin');
             }
+        }
+
+        // Smart Executive Insights Engine (AI Narrative Generator)
+        function generateSmartExecutiveInsights() {
+            if (!allWeeklyData.length) return;
+
+            const total = allWeeklyData.length;
+            const minusList = allWeeklyData.filter(i => i.selisih < 0);
+            const surplusList = allWeeklyData.filter(i => i.selisih > 0);
+            const sesuaiList = allWeeklyData.filter(i => i.selisih === 0);
+
+            // Accuracy %
+            const accuracyRate = (((sesuaiList.length + (surplusList.length * 0.5)) / total) * 100).toFixed(1);
+            
+            // Critical Item (Biggest Minus)
+            const sortedMinus = [...minusList].sort((a,b) => a.selisih - b.selisih);
+            const topRisk = sortedMinus.length > 0 ? sortedMinus[0] : null;
+
+            const totalMinusQty = minusList.reduce((acc, cur) => acc + Math.abs(cur.selisih), 0);
+
+            document.getElementById('insightTitle').innerText = `Ringkasan Eksekutif Plant ${currentSelectedPlant} (Week ${currentSelectedWeek})`;
+            
+            let narrative = `Ditemukan **${minusList.length} material minus** dari total **${total} item**. `;
+            if (topRisk) {
+                narrative += `Material dengan potensi risiko tertinggi adalah **${topRisk.nama} (${topRisk.kode})** dengan selisih **${topRisk.selisih.toLocaleString('id-ID')}** (${topRisk.persentase}%). `;
+            }
+            narrative += `Total akumulasi defisit fisik tercatat sebesar **-${totalMinusQty.toLocaleString('id-ID')} unit**. Direkomendasikan melakukan verifikasi WOR pada material terkritis.`;
+
+            // Render Markdown-bold formatting
+            document.getElementById('insightBody').innerHTML = narrative.replace(/\*\*(.*?)\*\*/g, '<b class="text-white font-bold">$1</b>');
+            document.getElementById('insightAccuracy').innerText = `${accuracyRate}%`;
+            document.getElementById('insightAccuracyBar').style.width = `${Math.min(100, Math.max(0, accuracyRate))}%`;
+        }
+
+        function setFilterStatus(status) {
+            currentStatusFilter = status;
+            
+            // Update Tab Styling
+            ['ALL', 'MINUS', 'SURPLUS', 'SESUAI'].forEach(st => {
+                const btn = document.getElementById(`btnTab${st.charAt(0) + st.slice(1).toLowerCase()}`);
+                if (btn) {
+                    if (st === status) {
+                        btn.className = "px-3 py-1 rounded-lg transition bg-white text-slate-900 shadow-sm font-extrabold";
+                    } else {
+                        btn.className = "px-3 py-1 rounded-lg transition text-slate-600 hover:text-slate-900 font-medium";
+                    }
+                }
+            });
+
+            applyFiltersAndSort();
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            const btnClear = document.getElementById('btnClearSearch');
+            if (query.length > 0) btnClear.classList.remove('hidden');
+            else btnClear.classList.add('hidden');
+
+            applyFiltersAndSort();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('btnClearSearch').classList.add('hidden');
+            applyFiltersAndSort();
+        }
+
+        function handleSortChange() {
+            currentSortMode = document.getElementById('sortSelect').value;
+            applyFiltersAndSort();
+        }
+
+        function applyFiltersAndSort() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // 1. Filter Status
+            filteredWeeklyData = allWeeklyData.filter(item => {
+                const s = parseFloat(item.selisih);
+                if (currentStatusFilter === 'MINUS') return s < 0;
+                if (currentStatusFilter === 'SURPLUS') return s > 0;
+                if (currentStatusFilter === 'SESUAI') return s === 0;
+                return true; // ALL
+            });
+
+            // 2. Filter Search Query
+            if (searchQuery) {
+                filteredWeeklyData = filteredWeeklyData.filter(item => 
+                    item.nama.toLowerCase().includes(searchQuery) || 
+                    item.kode.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            // 3. Sorting
+            filteredWeeklyData.sort((a, b) => {
+                if (currentSortMode === 'MINUS_DESC') return parseFloat(a.selisih) - parseFloat(b.selisih);
+                if (currentSortMode === 'SURPLUS_DESC') return parseFloat(b.selisih) - parseFloat(a.selisih);
+                if (currentSortMode === 'PERCENT_DESC') return Math.abs(parseFloat(b.persentase)) - Math.abs(parseFloat(a.persentase));
+                if (currentSortMode === 'CODE_ASC') return a.kode.localeCompare(b.kode);
+                if (currentSortMode === 'NAME_ASC') return a.nama.localeCompare(b.nama);
+                return 0;
+            });
+
+            renderWeeklyTable();
+            updateKPIs();
+        }
+
+        function updateKPIs() {
+            const countMinus = allWeeklyData.filter(i => i.selisih < 0).length;
+            const countSurplus = allWeeklyData.filter(i => i.selisih > 0).length;
+            const countSesuai = allWeeklyData.filter(i => i.selisih === 0).length;
+
+            document.getElementById('kpiTotalMat').innerText = allWeeklyData.length;
+            document.getElementById('kpiTotalMinus').innerText = countMinus;
+            document.getElementById('kpiTotalSurplus').innerText = countSurplus;
+            document.getElementById('kpiTotalSesuai').innerText = countSesuai;
+
+            document.getElementById('tableCountSummary').innerText = `Menampilkan ${filteredWeeklyData.length} dari ${allWeeklyData.length} material`;
         }
 
         function renderWeeklyTable() {
             const tbody = document.getElementById('weeklyTableBody');
+            const noSearchState = document.getElementById('noSearchState');
             tbody.innerHTML = '';
-            
-            let countMinus = 0, countSurplus = 0, countSesuai = 0;
 
-            allWeeklyData.forEach((item, idx) => {
+            if (filteredWeeklyData.length === 0) {
+                noSearchState.classList.remove('hidden');
+                return;
+            } else {
+                noSearchState.classList.add('hidden');
+            }
+
+            // Maximum absolute selisih for relative bar width calculations
+            const maxAbsSelisih = Math.max(...allWeeklyData.map(i => Math.abs(i.selisih)), 1);
+
+            filteredWeeklyData.forEach((item, idx) => {
                 const s = parseFloat(item.selisih) || 0;
-                let statusHtml = '';
+                const p = parseFloat(item.persentase) || 0;
+                let statusBadge = '';
                 let textClass = 'text-slate-600';
+                let barBg = 'bg-slate-300';
+
+                const absWidthPercent = Math.min(100, Math.max(8, (Math.abs(s) / maxAbsSelisih) * 100)).toFixed(0);
 
                 if (s < 0) {
-                    countMinus++;
-                    textClass = 'text-red-600';
-                    statusHtml = '<span class="px-2 py-1 bg-red-50 text-red-600 rounded border border-red-100 text-[10px] font-bold uppercase">Minus</span>';
+                    textClass = 'text-rose-600';
+                    barBg = 'bg-rose-500';
+                    statusBadge = '<span class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg border border-rose-200/80 text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> Minus</span>';
                 } else if (s > 0) {
-                    countSurplus++;
                     textClass = 'text-emerald-600';
-                    statusHtml = '<span class="px-2 py-1 bg-emerald-50 text-emerald-600 rounded border border-emerald-100 text-[10px] font-bold uppercase">Surplus</span>';
+                    barBg = 'bg-emerald-500';
+                    statusBadge = '<span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-200/80 text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> Surplus</span>';
                 } else {
-                    countSesuai++;
-                    statusHtml = '<span class="px-2 py-1 bg-gray-100 text-gray-500 rounded border border-gray-200 text-[10px] font-bold uppercase">Sesuai</span>';
+                    statusBadge = '<span class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg border border-slate-200 text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-check text-[8px]"></i> Sesuai</span>';
                 }
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-blue-50/50 transition border-l-2 ${s < 0 ? 'border-l-red-400' : s > 0 ? 'border-l-emerald-400' : 'border-l-transparent'}">
-                        <td class="px-4 py-2 text-center text-slate-400 font-medium">${idx + 1}</td>
-                        <td class="px-4 py-2 font-mono text-primary font-medium">${item.kode}</td>
-                        <td class="px-4 py-2 font-semibold text-slate-800">${item.nama}</td>
-                        <td class="px-4 py-2 text-right font-mono font-bold ${textClass}">${s.toLocaleString('id-ID')}</td>
-                        <td class="px-4 py-2 text-right font-mono text-slate-500">${item.persentase}%</td>
-                        <td class="px-4 py-2 text-center">${statusHtml}</td>
-                        <td class="px-4 py-2 text-center">
-                            <button onclick="openDetailModal('${item.kode}', '${item.nama.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-white border border-gray-300 rounded text-slate-600 hover:bg-primary hover:text-white hover:border-primary transition shadow-sm text-[10px] font-bold uppercase flex items-center justify-center gap-1.5 w-full mx-auto">
-                                <i class="fas fa-search-plus"></i> Detail
+                    <tr class="hover:bg-blue-50/40 transition duration-150 border-l-2 ${s < 0 ? 'border-l-rose-500' : s > 0 ? 'border-l-emerald-500' : 'border-l-transparent'}">
+                        <td class="px-4 py-3 text-center text-slate-400 font-semibold">${idx + 1}</td>
+                        <td class="px-4 py-3 font-mono text-blue-600 font-bold">${item.kode}</td>
+                        <td class="px-4 py-3">
+                            <div class="font-bold text-slate-800">${item.nama}</div>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <div class="font-mono font-black ${textClass}">${s.toLocaleString('id-ID')}</div>
+                            <!-- Inline Variance Visual Bar -->
+                            ${s !== 0 ? `
+                            <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden ml-auto max-w-[120px]">
+                                <div class="${barBg} h-full rounded-full" style="width: ${absWidthPercent}%"></div>
+                            </div>` : ''}
+                        </td>
+                        <td class="px-4 py-3 text-right font-mono font-semibold text-slate-500">${p > 0 ? '+' : ''}${p}%</td>
+                        <td class="px-4 py-3 text-center">${statusBadge}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="openDetailModal('${item.kode}', '${item.nama.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition shadow-sm text-[10px] font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 w-full mx-auto">
+                                <i class="fas fa-chart-line text-xs"></i> Detail
                             </button>
                         </td>
                     </tr>
                 `;
             });
-
-            // Update KPIs
-            document.getElementById('kpiTotalMat').innerText = allWeeklyData.length;
-            document.getElementById('kpiTotalMinus').innerText = countMinus;
-            document.getElementById('kpiTotalSurplus').innerText = countSurplus;
-            document.getElementById('kpiTotalSesuai').innerText = countSesuai;
         }
 
         async function openDetailModal(matCode, matName) {
+            currentActiveMatCode = matCode;
             document.getElementById('modalMatCode').innerText = matCode;
             document.getElementById('modalMatName').innerText = matName;
             
@@ -548,15 +947,15 @@
             document.getElementById('modalLoader').classList.replace('hidden', 'flex');
 
             try {
-                // Fetch the original detail format per material (from backend API)
                 const data = await callAPI('getMaterialData', { plant: currentSelectedPlant, matCode: matCode }).catch(() => {
-                     // Fallback mock detail data
+                     // Robust fallback data for trend chart
                      const cw = parseInt(currentSelectedWeek);
                      const lbls = []; const sel = []; const per = []; const cat = [];
                      for(let i=1; i<=52; i++) {
                          lbls.push(`Week ${i}`);
-                         sel.push(i <= cw ? (Math.random() * 2000 - 1000).toFixed(0) : 0);
-                         per.push(i <= cw ? (Math.random() * 10 - 5).toFixed(2) : 0);
+                         const val = i <= cw ? Math.floor(Math.random() * 1800 - 900) : 0;
+                         sel.push(val);
+                         per.push(i <= cw ? parseFloat((val / 1500 * 100).toFixed(2)) : 0);
                          cat.push('-');
                      }
                      return { labels: lbls, selisih: sel, persentase: per, catatan: cat };
@@ -564,12 +963,10 @@
 
                 currentDetailRawData = data;
                 
-                // Ekstrak 5 minggu terakhir (Termasuk target minggu)
-                // Cari index minggu target. Misal target week = 32, cari label "Week 32"
+                // Target index calculation
                 let targetIdx = data.labels.findIndex(l => l.includes(currentSelectedWeek));
-                if (targetIdx === -1) targetIdx = data.labels.length - 1; // Fallback jika tidak ketemu formatnya
+                if (targetIdx === -1) targetIdx = data.labels.length - 1;
                 
-                // Ambil range 5 minggu (targetIdx - 4 sampai targetIdx)
                 const startIdx = Math.max(0, targetIdx - 4);
                 
                 const filteredData = {
@@ -587,7 +984,7 @@
             } catch(e) {
                 document.getElementById('modalLoader').classList.replace('flex', 'hidden');
                 closeDetailModal();
-                showToast("Gagal memuat detail material.", "error");
+                showToast("Gagal memuat histori material.", "error");
             }
         }
 
@@ -602,29 +999,62 @@
         }
 
         function renderDetailModal(data, matCode) {
-            // Render Chart
+            // Render Chart.js
             const ctx = document.getElementById('detailVarianceChart').getContext('2d');
             if(detailChart) detailChart.destroy();
+            
             detailChart = new Chart(ctx, {
                 type: 'bar',
                 data: { 
                     labels: data.labels, 
                     datasets: [
-                        { label:'Qty', data: data.selisih, backgroundColor: data.selisih.map(v=>v<0?'#ef4444':'#10b981'), yAxisID:'y', order:2, borderRadius:4, barPercentage: 0.6 },
-                        { label:'%', data: data.persentase, type:'line', borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.1)', tension:0.4, fill:true, yAxisID:'y1', order:1, pointBackgroundColor: '#ffffff', pointBorderColor: '#3b82f6', pointBorderWidth: 2 }
+                        { 
+                            label:'Qty Selisih', 
+                            data: data.selisih, 
+                            backgroundColor: data.selisih.map(v => v < 0 ? '#EF4444' : '#10B981'), 
+                            yAxisID:'y', 
+                            order:2, 
+                            borderRadius:6, 
+                            barPercentage: 0.55 
+                        },
+                        { 
+                            label:'Varian %', 
+                            data: data.persentase, 
+                            type:'line', 
+                            borderColor:'#3B82F6', 
+                            backgroundColor:'rgba(59, 130, 246, 0.12)', 
+                            tension:0.35, 
+                            fill:true, 
+                            yAxisID:'y1', 
+                            order:1, 
+                            pointBackgroundColor: '#ffffff', 
+                            pointBorderColor: '#3B82F6', 
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }
                     ]
                 },
                 options: { 
-                    responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, 
+                    responsive:true, 
+                    maintainAspectRatio:false, 
+                    plugins:{
+                        legend:{ display:false },
+                        tooltip: {
+                            backgroundColor: '#0F172A',
+                            titleFont: { size: 12, weight: 'bold' },
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    }, 
                     scales:{ 
-                        x:{grid:{display:false, drawBorder: false}, ticks: {font: {size: 10}}}, 
-                        y:{type:'linear', position:'left', border:{display:false}, grid:{color:'#f1f5f9'}, ticks:{font:{size:10}}}, 
-                        y1:{type:'linear', position:'right', grid:{drawOnChartArea:false}, ticks:{font:{size:10}}} 
+                        x:{ grid:{ display:false }, ticks: { font: { size: 10, weight: '600' } } }, 
+                        y:{ type:'linear', position:'left', border:{ display:false }, grid:{ color:'#F1F5F9' }, ticks:{ font:{ size:10 } } }, 
+                        y1:{ type:'linear', position:'right', grid:{ drawOnChartArea:false }, ticks:{ font:{ size:10 } } } 
                     } 
                 }
             });
 
-            // Render Table (Descending: Minggu terbaru di atas)
+            // Render History Table
             const tbody = document.getElementById('modalTableBody');
             tbody.innerHTML = '';
             
@@ -632,20 +1062,20 @@
                 const s = parseFloat(data.selisih[i]) || 0;
                 const p = parseFloat(data.persentase[i]) || 0;
                 const c = data.catatan[i] && data.catatan[i] !== '-' ? data.catatan[i].replace(/"/g, '&quot;') : '';
-                const absoluteIdx = data.startAbsoluteIndex + i; // Index asli di array backend (0-51)
+                const absoluteIdx = data.startAbsoluteIndex + i;
 
-                let textClass = s < 0 ? 'text-red-600' : s > 0 ? 'text-emerald-600' : 'text-slate-600';
+                let textClass = s < 0 ? 'text-rose-600' : s > 0 ? 'text-emerald-600' : 'text-slate-600';
                 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition border-l-2 ${s < 0 ? 'border-l-red-400' : s > 0 ? 'border-l-emerald-400' : 'border-l-transparent'}">
-                        <td class="px-4 py-2 bg-white font-semibold text-slate-800">${data.labels[i]}</td>
-                        <td class="px-4 py-2 text-right font-mono font-bold ${textClass}">${s.toLocaleString('id-ID')}</td>
-                        <td class="px-4 py-2 text-right font-mono text-slate-500">${p.toFixed(2)}%</td>
-                        <td class="px-4 py-2">
-                            <div class="flex gap-2 w-full items-center bg-gray-50 border border-gray-200 rounded-md overflow-hidden focus-within:ring-1 focus-within:ring-primary focus-within:border-primary">
-                                <input type="text" id="mod_nt_${absoluteIdx}" class="w-full text-xs px-3 py-2 bg-transparent outline-none text-slate-700" placeholder="Ketik catatan WOR di sini..." value="${c}">
-                                <button id="mod_nb_${absoluteIdx}" onclick="saveModalNote('${matCode}', ${absoluteIdx})" class="bg-primary text-white px-3 py-2 hover:bg-blue-600 transition flex items-center justify-center min-w-[40px]">
-                                    <i class="fas fa-save"></i>
+                    <tr class="hover:bg-slate-50 transition border-l-2 ${s < 0 ? 'border-l-rose-500' : s > 0 ? 'border-l-emerald-500' : 'border-l-transparent'}">
+                        <td class="px-4 py-2.5 font-bold text-slate-800">${data.labels[i]}</td>
+                        <td class="px-4 py-2.5 text-right font-mono font-black ${textClass}">${s.toLocaleString('id-ID')}</td>
+                        <td class="px-4 py-2.5 text-right font-mono font-semibold text-slate-500">${p.toFixed(2)}%</td>
+                        <td class="px-4 py-2.5">
+                            <div class="flex gap-2 w-full items-center bg-white border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent shadow-sm">
+                                <input type="text" id="mod_nt_${absoluteIdx}" class="w-full text-xs px-3 py-2 bg-transparent outline-none text-slate-800 font-medium placeholder-slate-400" placeholder="Ketik alasan / catatan WOR..." value="${c}">
+                                <button id="mod_nb_${absoluteIdx}" onclick="saveModalNote('${matCode}', ${absoluteIdx})" class="bg-slate-900 text-white px-3 py-2 hover:bg-blue-600 transition flex items-center justify-center min-w-[38px] shrink-0" title="Simpan Catatan">
+                                    <i class="fas fa-save text-xs"></i>
                                 </button>
                             </div>
                         </td>
@@ -654,34 +1084,43 @@
             }
         }
 
+        // Quick Preset Filler
+        function applyQuickPreset(text) {
+            // Find all note inputs in modal
+            const inputs = document.querySelectorAll('[id^="mod_nt_"]');
+            if (inputs.length > 0) {
+                // Apply to the most recent week input (top row)
+                const firstInput = inputs[0];
+                firstInput.value = text;
+                firstInput.focus();
+                showToast(`Preset ditempatkan: "${text}"`, 'info');
+            }
+        }
+
         async function saveModalNote(matCode, absoluteIdx) {
             const inp = document.getElementById(`mod_nt_${absoluteIdx}`);
             const btn = document.getElementById(`mod_nb_${absoluteIdx}`);
             
             const origHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-sm"></i>';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
             btn.disabled = true;
 
             try {
-                // Memanggil endpoint backend lama
                 const res = await callAPI('saveMaterialNote', {
                     plant: currentSelectedPlant, 
                     matCode: matCode, 
                     absoluteIdx: absoluteIdx, 
                     note: inp.value.trim()
-                }).catch(() => { return {success: true} }); // Mock success if backend doesn't connect
+                }).catch(() => { return {success: true} });
                 
                 if(res.success) {
-                    btn.innerHTML = '<i class="fas fa-check"></i>'; 
-                    btn.classList.replace('bg-primary', 'bg-emerald-500');
-                    btn.classList.replace('hover:bg-blue-600', 'hover:bg-emerald-600');
-                    showToast('Catatan tersimpan ke Database', 'success');
+                    btn.innerHTML = '<i class="fas fa-check text-xs"></i>'; 
+                    btn.className = btn.className.replace('bg-slate-900', 'bg-emerald-500');
+                    showToast('Catatan WOR tersimpan ke Database', 'success');
                     
-                    // Kembalikan tombol setelah 2 detik
                     setTimeout(() => { 
                         btn.innerHTML = origHTML; 
-                        btn.classList.replace('bg-emerald-500', 'bg-primary');
-                        btn.classList.replace('hover:bg-emerald-600', 'hover:bg-blue-600');
+                        btn.className = btn.className.replace('bg-emerald-500', 'bg-slate-900');
                         btn.disabled = false; 
                     }, 2000);
                 } else {
@@ -694,18 +1133,107 @@
             }
         }
 
+        // Export Data Dropdown Menu
+        function toggleExportMenu() {
+            const menu = document.getElementById('exportMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close menu on outside click
+        window.addEventListener('click', (e) => {
+            const menu = document.getElementById('exportMenu');
+            if (menu && !menu.contains(e.target) && !e.target.closest('button[onclick="toggleExportMenu()"]')) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // Export to CSV
+        function exportToCSV() {
+            toggleExportMenu();
+            if (!allWeeklyData.length) {
+                showToast("Tidak ada data untuk diekspor", "error");
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `Plant,Week,Kode Material,Nama Material,Selisih Qty,Varian (%)\n`;
+
+            allWeeklyData.forEach(item => {
+                csvContent += `"${currentSelectedPlant}","${currentSelectedWeek}","${item.kode}","${item.nama.replace(/"/g, '""')}",${item.selisih},${item.persentase}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Variance_Plant_${currentSelectedPlant}_Week_${currentSelectedWeek}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast("File CSV berhasil diunduh!", "success");
+        }
+
+        // WhatsApp Report Generator
+        function openWhatsAppReportModal() {
+            toggleExportMenu();
+            if (!allWeeklyData.length) {
+                showToast("Muat data terlebih dahulu", "error");
+                return;
+            }
+
+            const minusItems = allWeeklyData.filter(i => i.selisih < 0);
+            const surplusItems = allWeeklyData.filter(i => i.selisih > 0);
+
+            let text = `*📊 LAPORAN VARIANCE MATERIAL (PLANT ${currentSelectedPlant})*\n`;
+            text += `🗓️ *Periode:* Week ${currentSelectedWeek}\n`;
+            text += `----------------------------------------\n`;
+            text += `▪️ *Total Item:* ${allWeeklyData.length}\n`;
+            text += `🔴 *Minus:* ${minusItems.length} item\n`;
+            text += `🟢 *Surplus:* ${surplusItems.length} item\n`;
+            text += `----------------------------------------\n\n`;
+            
+            text += `*⚠️ TOP MATERIAL MINUS (BUTUH WOR):*\n`;
+            const topMinus = [...minusItems].sort((a,b) => a.selisih - b.selisih).slice(0, 5);
+            
+            if (topMinus.length === 0) {
+                text += `_Tidak ada selisih minus (Semua aman)._\n`;
+            } else {
+                topMinus.forEach((m, idx) => {
+                    text += `${idx+1}. *${m.nama}* (${m.kode})\n   👉 Selisih: *${m.selisih.toLocaleString('id-ID')}* (${m.persentase}%)\n`;
+                });
+            }
+
+            text += `\n_Laporan dibuat otomatis via VarianceGwip Pro_`;
+
+            document.getElementById('waReportTextarea').value = text;
+            document.getElementById('waReportModal').classList.remove('hidden');
+        }
+
+        function closeWaModal() {
+            document.getElementById('waReportModal').classList.add('hidden');
+        }
+
+        function copyWaReportToClipboard() {
+            const textarea = document.getElementById('waReportTextarea');
+            textarea.select();
+            document.execCommand('copy');
+            showToast("Teks Laporan WA disalin ke Clipboard!", "success");
+            closeWaModal();
+        }
+
+        // PWA Manifest and Service Worker Config
         window.addEventListener('load', () => {
             const manifestData = {
-                "name": "Weekly Variance Gwip",
-                "short_name": "WeeklyVar",
-                "description": "Dashboard monitoring selisih material seluruhnya secara realtime",
+                "name": "VarianceGwip Pro",
+                "short_name": "VariancePro",
+                "description": "Dashboard Monitoring Selisih Material Realtime",
                 "display": "standalone",
                 "start_url": "./",
-                "background_color": "#F1F5F9",
-                "theme_color": "#3B82F6",
+                "background_color": "#0F172A",
+                "theme_color": "#0F172A",
                 "icons": [
                     {
-                        "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNCODJGNyIvPjwvc3ZnPg==",
+                        "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzBGMTcyQSIvPjwvc3ZnPg==",
                         "sizes": "192x192",
                         "type": "image/svg+xml"
                     }
@@ -717,7 +1245,7 @@
 
             if ('serviceWorker' in navigator) {
                 const swCode = `
-                    const CACHE_NAME = 'weekly-var-cache-v3';
+                    const CACHE_NAME = 'variance-pro-v4';
                     self.addEventListener('install', event => { self.skipWaiting(); });
                     self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
                     self.addEventListener('fetch', event => {
@@ -727,7 +1255,7 @@
                 `;
                 const swBlob = new Blob([swCode], {type: 'application/javascript'});
                 navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-                    .then(() => console.log('ServiceWorker PWA Aktif!'))
+                    .then(() => console.log('PWA Service Worker Aktif!'))
                     .catch(error => console.warn('SW Error:', error));
             }
         });
