@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard Selisih Material - PWA</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3B82F6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Dashboard monitoring selisih material dan varian.">
+    
+    <!-- Dynamic Manifest Placeholder -->
+    <link id="manifest-placeholder" rel="manifest" href="">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkblue: '#0B1121', 
+                        panel: '#ffffff',
+                        primary: '#3B82F6',
+                        accent: '#06B6D4'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #F1F5F9; 
+            color: #0F172A; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-panel {
+            background: #ffffff;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+        
+        .loader {
+            border: 3px solid #E2E8F0; 
+            border-top: 3px solid #06B6D4;
+            border-radius: 50%; 
+            width: 24px; 
+            height: 24px; 
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Toast Animation */
+        @keyframes slideInUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .toast-enter { animation: slideInUp 0.3s ease-out forwards; }
+        .toast-exit { animation: fadeOut 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden selection:bg-accent selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
+
+    <div id="loginView" class="flex items-center justify-center h-full w-full absolute inset-0 z-50 bg-slate-50 relative overflow-hidden">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary rounded-full mix-blend-multiply filter blur-[100px] opacity-10"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-accent rounded-full mix-blend-multiply filter blur-[100px] opacity-10"></div>
+
+        <div class="glass-panel p-8 rounded-2xl w-full max-w-md mx-4 relative z-10">
+            <div class="text-center mb-6">
+                <div class="bg-gradient-to-br from-primary to-accent text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg">
+                    <i class="fas fa-cubes text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 tracking-wide">Variance<span class="text-accent">Gwip</span></h2>
+                <p class="text-slate-500 text-sm mt-2">Analisis Selisih & Varian Material</p>
+                
+                <!-- API Status Indicator -->
+                <div id="apiStatusBadge" class="mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
+                    <i class="fas fa-exclamation-circle"></i> Mode Offline / Preview
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-slate-400"></i>
+                        </div>
+                        <input type="text" id="username" class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-slate-800 placeholder-gray-400 focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all" placeholder="Masukkan username">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-slate-400"></i>
+                        </div>
+                        <input type="password" id="password" class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-slate-800 placeholder-gray-400 focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all" placeholder="••••••••">
+                    </div>
+                </div>
+                <div id="loginError" class="text-red-600 text-sm hidden font-medium text-center bg-red-50 py-2 rounded-lg border border-red-200"></div>
+                
+                <button onclick="handleLogin()" id="btnLogin" class="w-full bg-gradient-to-r from-primary to-accent hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3 rounded-xl transition duration-300 flex justify-center items-center gap-2 mt-2 shadow-md">
+                    <span>Masuk ke Dashboard</span>
+                    <i class="fas fa-arrow-right text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboardView" class="hidden flex flex-col h-screen w-full relative">
+
+        <nav class="bg-darkblue border-b border-slate-800 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center shrink-0 z-20 shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-br from-primary to-accent text-white p-2 rounded-lg shadow-lg">
+                    <i class="fas fa-chart-pie text-sm md:text-base"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold text-white tracking-tight leading-tight">Material<span class="text-accent">Variance</span></h1>
+                    <p class="text-[10px] md:text-xs text-slate-400">Monitoring System</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-slate-300 hover:text-white transition px-3 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl bg-slate-800/50 hover:bg-red-500 text-xs md:text-sm font-medium border border-transparent flex items-center gap-2">
+                <i class="fas fa-power-off"></i> <span class="hidden sm:inline">Keluar</span>
+            </button>
+        </nav>
+
+        <main class="flex-1 overflow-y-auto p-3 md:p-6 lg:p-8 z-10 relative">
+            
+            <div class="glass-panel rounded-2xl p-4 md:p-6 mb-4 md:mb-6">
+                <h3 class="text-xs md:text-sm font-semibold text-primary mb-3 md:mb-4 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-filter"></i> Parameter Analisis
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
+                    
+                    <div class="lg:col-span-2">
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Pilih Plant</label>
+                        <select id="plantSelect" onchange="loadMaterials()" class="w-full px-3 py-2 md:py-2.5 bg-white border border-gray-300 rounded-lg md:rounded-xl text-slate-800 focus:ring-2 focus:ring-primary outline-none transition appearance-none text-sm">
+                            <option value="">-- Plant --</option>
+                            <option value="1112">Plant 1112 (Stage 1)</option>
+                            <option value="1113">Plant 1113 (Stage 2)</option>
+                        </select>
+                    </div>
+
+                    <div class="lg:col-span-4 relative">
+                        <label class="block text-xs font-medium text-slate-600 mb-1.5">Cari & Pilih Material</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400 text-sm"></i>
+                            </div>
+                            <input type="text" id="materialSearch" disabled placeholder="Pilih plant terlebih dahulu..." 
+                                class="w-full pl-9 pr-8 py-2 md:py-2.5 bg-white border border-gray-300 rounded-lg md:rounded-xl text-slate-800 placeholder-gray-400 focus:ring-2 focus:ring-primary outline-none disabled:bg-gray-100 disabled:opacity-70 transition text-sm"
+                                oninput="filterMaterialList()" onfocus="showMaterialDropdown()">
+                            
+                            <button id="clearMaterialBtn" onclick="clearMaterialSelection()" class="absolute inset-y-0 right-0 pr-3 flex items-center hidden text-gray-400 hover:text-red-500 transition">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                        
+                        <div id="materialDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto hidden">
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-4 grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1.5">Mulai Minggu</label>
+                            <select id="startWeekSelect" onchange="applyFilters()" disabled class="w-full px-3 py-2 md:py-2.5 bg-white border border-gray-300 rounded-lg md:rounded-xl text-slate-800 focus:ring-2 focus:ring-primary outline-none transition appearance-none disabled:bg-gray-100 disabled:opacity-70 text-sm">
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1.5">Sampai Minggu</label>
+                            <select id="endWeekSelect" onchange="applyFilters()" disabled class="w-full px-3 py-2 md:py-2.5 bg-white border border-gray-300 rounded-lg md:rounded-xl text-slate-800 focus:ring-2 focus:ring-primary outline-none transition appearance-none disabled:bg-gray-100 disabled:opacity-70 text-sm">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 flex justify-end lg:justify-start">
+                        <button onclick="fetchMaterialData()" id="btnRefresh" disabled class="w-full px-4 py-2 md:py-2.5 bg-slate-800 border border-slate-800 text-white rounded-lg md:rounded-xl hover:bg-slate-700 transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                            <i class="fas fa-sync-alt"></i> Muat Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dataLoader" class="hidden flex-col items-center justify-center py-20">
+                <div class="loader mb-4"></div>
+                <p class="text-primary text-sm font-medium tracking-wide animate-pulse">Menghitung dan memproses data...</p>
+            </div>
+
+            <div id="dataContainer" class="hidden space-y-4 md:space-y-6">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+                    <div class="glass-panel rounded-2xl p-4 md:p-5 border-l-4 border-primary relative overflow-hidden group">
+                        <div class="absolute right-[-10%] top-[-10%] opacity-5 group-hover:opacity-10 transition duration-300">
+                            <i class="fas fa-boxes text-6xl md:text-8xl text-primary"></i>
+                        </div>
+                        <div class="relative z-10 flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] md:text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">Total Selisih Bersih</p>
+                                <h3 id="kpiTotalSelisih" class="text-2xl md:text-3xl font-bold text-slate-800">0</h3>
+                            </div>
+                            <div class="p-3 md:p-4 bg-blue-50 rounded-xl md:rounded-2xl text-primary border border-blue-100"><i class="fas fa-weight-hanging text-xl md:text-2xl"></i></div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel rounded-2xl p-4 md:p-5 border-l-4 border-accent relative overflow-hidden group">
+                        <div class="absolute right-[-10%] top-[-10%] opacity-5 group-hover:opacity-10 transition duration-300">
+                            <i class="fas fa-chart-pie text-6xl md:text-8xl text-accent"></i>
+                        </div>
+                        <div class="relative z-10 flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] md:text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">Rata-rata Varian</p>
+                                <h3 id="kpiAvgPersen" class="text-2xl md:text-3xl font-bold text-slate-800">0%</h3>
+                            </div>
+                            <div class="p-3 md:p-4 bg-cyan-50 rounded-xl md:rounded-2xl text-accent border border-cyan-100"><i class="fas fa-percentage text-xl md:text-2xl"></i></div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel rounded-2xl p-4 md:p-5 border-l-4 border-red-500 relative overflow-hidden group">
+                        <div class="absolute right-[-10%] top-[-10%] opacity-5 group-hover:opacity-10 transition duration-300">
+                            <i class="fas fa-exclamation-triangle text-6xl md:text-8xl text-red-500"></i>
+                        </div>
+                        <div class="relative z-10 flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] md:text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">Varian Tertinggi</p>
+                                <h3 id="kpiMaxWeek" class="text-xl md:text-2xl font-bold text-slate-800 mt-1">-</h3>
+                            </div>
+                            <div class="p-3 md:p-4 bg-red-50 rounded-xl md:rounded-2xl text-red-500 border border-red-100"><i class="fas fa-arrow-trend-up text-xl md:text-2xl"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-4 md:p-6 w-full">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-6 gap-3">
+                        <div>
+                            <h2 class="text-base md:text-lg font-bold text-slate-800">Tren Pergerakan Selisih</h2>
+                            <p class="text-xs text-slate-500 mt-1" id="chartSubtitle">Menampilkan data berdasarkan filter minggu.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-3 text-xs md:text-sm font-medium text-slate-600 bg-gray-50 px-3 py-2 rounded-lg md:rounded-xl border border-gray-200">
+                            <div class="flex items-center gap-1.5 md:gap-2"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-emerald-500"></span> Surplus</div>
+                            <div class="flex items-center gap-1.5 md:gap-2"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500"></span> Minus</div>
+                            <div class="flex items-center gap-1.5 md:gap-2"><span class="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-blue-500"></span> % Varian</div>
+                        </div>
+                    </div>
+                    <div class="w-full h-60 md:h-80 relative overflow-hidden">
+                        <!-- Chart Container is flexible -->
+                        <canvas id="varianceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl overflow-hidden w-full">
+                    <div class="px-4 md:px-6 py-4 md:py-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                        <h2 class="text-base md:text-lg font-bold text-slate-800"><i class="fas fa-list-ul mr-2 text-primary"></i> Rincian Data Analisis</h2>
+                    </div>
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left border-collapse min-w-[800px] md:min-w-[1000px]">
+                            <thead>
+                                <tr class="bg-gray-100 text-slate-700 text-xs md:text-sm border-b border-gray-300">
+                                    <th class="px-4 md:px-6 py-3 md:py-4 font-semibold sticky left-0 bg-gray-100 z-10 border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] w-24 md:w-40">Periode</th>
+                                    <th class="px-4 md:px-6 py-3 md:py-4 font-semibold text-right w-28 md:w-40">Qty Selisih</th>
+                                    <th class="px-4 md:px-6 py-3 md:py-4 font-semibold text-right w-24 md:w-40">Varian (%)</th>
+                                    <th class="px-4 md:px-6 py-3 md:py-4 font-semibold text-center w-36 md:w-48">Status Kondisi</th>
+                                    <th class="px-4 md:px-6 py-3 md:py-4 font-semibold text-left border-l border-gray-200">Catatan Pra Wor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="divide-y divide-gray-200 text-xs md:text-sm text-slate-700 bg-white">
+                                <!-- Baris tabel disuntikkan lewat JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ==========================================
+        // KONFIGURASI API BACKEND (Google Apps Script)
+        // ==========================================
+        // Ganti URL di bawah dengan Web App URL dari Google Apps Script Anda!
+        // Pastikan setting deployment: 
+        // "Execute as: Me" dan "Who has access: Anyone"
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbysTxoIdZHJp9LDt4o6RJN-j3NXs8ioRlO8cZk0jqLQQtZNEyd1ZbL2GQYyDWoLbiW1Ng/exec"; // Contoh: "https://script.google.com/macros/s/AKfycb.../exec"
+        
+        let myChart = null;
+        let allMaterials = [];
+        let selectedMaterialCode = "";
+        let currentRawData = null; 
+
+        // Fungsi Toast Notification (Menggantikan Alert)
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-gray-800';
+            let icon = 'fa-info-circle';
+            let iconColor = 'text-blue-400';
+            
+            if (type === 'success') {
+                bgClass = 'bg-gray-800';
+                icon = 'fa-check-circle';
+                iconColor = 'text-emerald-400';
+            } else if (type === 'error') {
+                bgClass = 'bg-red-600';
+                icon = 'fa-exclamation-circle';
+                iconColor = 'text-white';
+            }
+
+            toast.className = `flex items-center gap-3 w-full px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${bgClass} toast-enter pointer-events-auto`;
+            toast.innerHTML = `<i class="fas ${icon} ${iconColor} text-lg"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.replace('toast-enter', 'toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Cek Status Konfigurasi API
+        window.addEventListener('DOMContentLoaded', () => {
+            const badge = document.getElementById('apiStatusBadge');
+            if (GAS_API_URL.trim().length > 10) {
+                badge.innerHTML = '<i class="fas fa-wifi"></i> Terhubung ke Apps Script';
+                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 border border-emerald-200';
+            }
+        });
+
+        // API Communication Helper
+        async function callAPI(action, payload) {
+            // JIKA URL BELUM DISETTING -> GUNAKAN DATA PALSU/MOCK UNTUK PREVIEW
+            if (!GAS_API_URL || GAS_API_URL.trim() === "") {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        if (action === 'verifyLogin') {
+                            if (payload.u === 'admin' && payload.p === 'admin123') resolve({success: true});
+                            else resolve({success: false, message: 'Gunakan admin / admin123 (Mode Preview)'});
+                        } 
+                        else if (action === 'getMaterialList') {
+                            resolve([
+                                {kode: 'RM-001', nama: 'Besi Plat 5mm (Mock)'},
+                                {kode: 'RM-002', nama: 'Besi Pipa 2 inch (Mock)'}
+                            ]);
+                        } 
+                        else if (action === 'getMaterialData') {
+                            let labels = [], selisih = [], persentase = [], catatan = [];
+                            for(let i=1; i<=52; i++) {
+                                labels.push(`Week ${i}`);
+                                // Generate mock data
+                                let s = Math.floor(Math.random() * 200) - 100; // -100 to 100
+                                let p = (s * 0.5).toFixed(2);
+                                selisih.push(s);
+                                persentase.push(parseFloat(p));
+                                catatan.push("-");
+                            }
+                            resolve({ labels, selisih, persentase, catatan });
+                        }
+                        else if (action === 'saveMaterialNote') {
+                            resolve({ success: true });
+                        }
+                    }, 800); // Simulasi delay internet
+                });
+            }
+
+            // JIKA URL SUDAH DISETTING -> PANGGIL GOOGLE APPS SCRIPT
+            try {
+                // Konvensi standard Apps script POST 
+                // Karena kita passing action di parameter, di Apps Script gunakan: e.parameter.action
+                // Dan payload ada di: JSON.parse(e.postData.contents)
+                const url = new URL(GAS_API_URL);
+                url.searchParams.append('action', action);
+
+                const response = await fetch(url.toString(), {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8' // Hindari preflight CORS error di GAS
+                    }
+                });
+                
+                if (!response.ok) throw new Error("Jaringan bermasalah");
+                return await response.json();
+            } catch (error) {
+                console.error("API Call Error:", error);
+                throw error;
+            }
+        }
+
+        async function handleLogin() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const btn = document.getElementById('btnLogin');
+            const err = document.getElementById('loginError');
+            
+            btn.innerHTML = '<div class="loader border-white border-t-transparent w-5 h-5"></div>';
+            
+            try {
+                const res = await callAPI('verifyLogin', {u: user, p: pass});
+                if (res.success) {
+                    document.getElementById('loginView').classList.add('hidden');
+                    document.getElementById('dashboardView').classList.remove('hidden');
+                    populateWeekDropdowns(); 
+                    showToast('Berhasil masuk', 'success');
+                } else {
+                    err.innerText = res.message;
+                    err.classList.remove('hidden');
+                    btn.innerHTML = '<span>Masuk ke Dashboard</span><i class="fas fa-arrow-right text-sm"></i>';
+                }
+            } catch (e) {
+                err.innerText = "Gagal terhubung ke server.";
+                err.classList.remove('hidden');
+                btn.innerHTML = '<span>Masuk ke Dashboard</span><i class="fas fa-arrow-right text-sm"></i>';
+            }
+        }
+
+        function logout() {
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('loginView').classList.remove('hidden');
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('loginError').classList.add('hidden');
+            document.getElementById('btnLogin').innerHTML = '<span>Masuk ke Dashboard</span><i class="fas fa-arrow-right text-sm"></i>';
+        }
+
+        function populateWeekDropdowns() {
+            const startSelect = document.getElementById('startWeekSelect');
+            const endSelect = document.getElementById('endWeekSelect');
+            startSelect.innerHTML = ''; endSelect.innerHTML = '';
+            
+            for(let i=1; i<=52; i++) {
+                startSelect.innerHTML += `<option value="${i}">Week ${i}</option>`;
+                endSelect.innerHTML += `<option value="${i}" ${i === 52 ? 'selected' : ''}>Week ${i}</option>`;
+            }
+        }
+
+        async function loadMaterials() {
+            const plant = document.getElementById('plantSelect').value;
+            const searchInput = document.getElementById('materialSearch');
+            
+            clearMaterialSelection();
+            document.getElementById('dataContainer').classList.add('hidden');
+
+            if (!plant) {
+                searchInput.disabled = true;
+                searchInput.placeholder = "Pilih plant terlebih dahulu...";
+                return;
+            }
+
+            searchInput.disabled = true;
+            searchInput.placeholder = "Memuat daftar material...";
+            
+            try {
+                allMaterials = await callAPI('getMaterialList', {plant});
+                searchInput.disabled = false;
+                searchInput.placeholder = "Ketik nama atau kode material...";
+                filterMaterialList(); 
+            } catch(e) {
+                searchInput.placeholder = "Gagal memuat material.";
+                showToast("Gagal mengambil data material", "error");
+            }
+        }
+
+        function filterMaterialList() {
+            const query = document.getElementById('materialSearch').value.toLowerCase();
+            const dropdown = document.getElementById('materialDropdown');
+            dropdown.innerHTML = '';
+            
+            let filtered = allMaterials.filter(m => 
+                m.nama.toLowerCase().includes(query) || m.kode.toLowerCase().includes(query)
+            );
+
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500">Material tidak ditemukan</div>';
+            } else {
+                filtered.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'px-4 py-2.5 hover:bg-slate-100 cursor-pointer text-xs md:text-sm border-b border-gray-100 last:border-0 transition-colors flex justify-between items-center';
+                    div.innerHTML = `<span class="font-medium text-slate-800 break-words pr-2">${m.nama}</span> <span class="text-[10px] md:text-xs bg-slate-100 px-2 py-1 rounded border border-gray-200 text-slate-600 whitespace-nowrap">${m.kode}</span>`;
+                    
+                    div.onmousedown = (e) => {
+                        e.preventDefault(); 
+                        selectMaterial(m.kode, m.nama);
+                    };
+                    dropdown.appendChild(div);
+                });
+            }
+            dropdown.classList.remove('hidden');
+        }
+
+        function showMaterialDropdown() {
+            if(allMaterials.length > 0) {
+                document.getElementById('materialDropdown').classList.remove('hidden');
+                filterMaterialList();
+            }
+        }
+
+        function selectMaterial(kode, nama) {
+            const input = document.getElementById('materialSearch');
+            input.value = `${nama} (${kode})`;
+            selectedMaterialCode = kode;
+            
+            document.getElementById('materialDropdown').classList.add('hidden');
+            document.getElementById('clearMaterialBtn').classList.remove('hidden');
+            
+            document.getElementById('startWeekSelect').disabled = false;
+            document.getElementById('endWeekSelect').disabled = false;
+            document.getElementById('btnRefresh').disabled = false;
+
+            fetchMaterialData(); 
+        }
+
+        function clearMaterialSelection() {
+            document.getElementById('materialSearch').value = '';
+            selectedMaterialCode = "";
+            document.getElementById('clearMaterialBtn').classList.add('hidden');
+            document.getElementById('btnRefresh').disabled = true;
+            document.getElementById('dataContainer').classList.add('hidden');
+            currentRawData = null;
+            
+            filterMaterialList(); 
+            document.getElementById('materialSearch').focus(); 
+        }
+
+        // Tutup dropdown jika klik diluar
+        document.addEventListener('click', function(event) {
+            const searchInput = document.getElementById('materialSearch');
+            const dropdown = document.getElementById('materialDropdown');
+            if (event.target !== searchInput && !dropdown.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        async function fetchMaterialData() {
+            const plant = document.getElementById('plantSelect').value;
+            if (!plant || !selectedMaterialCode) return;
+
+            document.getElementById('dataContainer').classList.add('hidden');
+            document.getElementById('dataLoader').classList.remove('hidden');
+            document.getElementById('dataLoader').classList.add('flex');
+
+            try {
+                const data = await callAPI('getMaterialData', {plant, matCode: selectedMaterialCode});
+                document.getElementById('dataLoader').classList.add('hidden');
+                document.getElementById('dataLoader').classList.remove('flex');
+                
+                if(data && data.labels) {
+                    currentRawData = data; 
+                    applyFilters(); 
+                    document.getElementById('dataContainer').classList.remove('hidden');
+                    showToast("Data berhasil dimuat", "success");
+                } else {
+                    showToast("Data tidak ditemukan untuk material ini.", "error");
+                }
+            } catch(e) {
+                document.getElementById('dataLoader').classList.add('hidden');
+                document.getElementById('dataLoader').classList.remove('flex');
+                showToast("Gagal memuat grafik data", "error");
+            }
+        }
+
+        function applyFilters() {
+            if(!currentRawData) return;
+
+            let startIdx = parseInt(document.getElementById('startWeekSelect').value) - 1;
+            let endIdx = parseInt(document.getElementById('endWeekSelect').value) - 1;
+
+            if (startIdx > endIdx) {
+                let temp = startIdx;
+                startIdx = endIdx;
+                endIdx = temp;
+                document.getElementById('startWeekSelect').value = startIdx + 1;
+                document.getElementById('endWeekSelect').value = endIdx + 1;
+            }
+
+            const filteredData = {
+                labels: currentRawData.labels.slice(startIdx, endIdx + 1),
+                selisih: currentRawData.selisih.slice(startIdx, endIdx + 1),
+                persentase: currentRawData.persentase.slice(startIdx, endIdx + 1),
+                catatan: currentRawData.catatan ? currentRawData.catatan.slice(startIdx, endIdx + 1) : [] 
+            };
+
+            updateDashboard(filteredData, startIdx);
+            document.getElementById('chartSubtitle').innerText = `Menampilkan data dari Week ${startIdx + 1} sampai Week ${endIdx + 1}.`;
+        }
+
+        function updateDashboard(data, startIdx) {
+            let totalSelisih = 0;
+            let sumPersen = 0;
+            let maxSelisihAbs = -1;
+            let maxWeekLabel = '-';
+            let validWeeks = 0;
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            const dataLength = data.labels.length;
+
+            for(let i = dataLength - 1; i >= 0; i--) {
+                let s = parseFloat(data.selisih[i]) || 0;
+                let p = parseFloat(data.persentase[i]) || 0;
+                let c = data.catatan && data.catatan[i] ? data.catatan[i] : '-'; 
+                let absoluteIdx = startIdx + i; 
+                
+                totalSelisih += s;
+                
+                if (s !== 0 || p !== 0) {
+                    sumPersen += p;
+                    validWeeks++;
+                    
+                    if (Math.abs(s) > maxSelisihAbs) {
+                        maxSelisihAbs = Math.abs(s);
+                        maxWeekLabel = data.labels[i];
+                    }
+                }
+
+                let statusHtml = '';
+                let selisihColor = 'text-slate-500';
+                
+                if (s < 0) {
+                    statusHtml = '<span class="px-2 md:px-3 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-[10px] md:text-xs font-semibold shadow-sm inline-block">Kurang fisik (minus)</span>';
+                    selisihColor = 'text-red-600 font-bold';
+                } else if (s > 0) {
+                    statusHtml = '<span class="px-2 md:px-3 py-1 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-full text-[10px] md:text-xs font-semibold shadow-sm inline-block">Lebih fisik (surplus)</span>';
+                    selisihColor = 'text-emerald-600 font-bold';
+                } else {
+                    statusHtml = '<span class="px-2 md:px-3 py-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-full text-[10px] md:text-xs font-semibold shadow-sm inline-block">Sesuai (Nir-Varian)</span>';
+                    selisihColor = 'text-gray-500';
+                }
+
+                let inputValue = c !== '-' ? c.replace(/"/g, '&quot;') : '';
+                let noteHtml = `
+                    <div class="flex items-center gap-1 md:gap-2 w-full">
+                        <input type="text" id="note_input_${i}" class="w-full text-[10px] md:text-xs px-2 py-1.5 md:px-3 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none text-slate-700 bg-white transition-colors shadow-inner" value="${inputValue}" placeholder="Ketik catatan...">
+                        <button id="note_btn_${i}" onclick="saveNote(${absoluteIdx}, ${i})" class="text-white bg-primary hover:bg-blue-600 px-2 py-1.5 md:px-3 md:py-2 rounded-lg text-xs md:text-sm transition-all shadow-sm flex-shrink-0 focus:ring-2 focus:ring-offset-1 focus:ring-blue-500" title="Simpan Catatan">
+                            <i class="fas fa-save"></i>
+                        </button>
+                    </div>
+                `;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-blue-50 transition duration-150">
+                        <td class="px-4 md:px-6 py-2 md:py-3 font-medium sticky left-0 bg-white border-r border-gray-200 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] z-10">${data.labels[i]}</td>
+                        <td class="px-4 md:px-6 py-2 md:py-3 text-right font-mono ${selisihColor}">${s.toLocaleString('id-ID')}</td>
+                        <td class="px-4 md:px-6 py-2 md:py-3 text-right font-mono text-slate-600">${p.toFixed(2)}%</td>
+                        <td class="px-4 md:px-6 py-2 md:py-3 text-center">${statusHtml}</td>
+                        <td class="px-4 md:px-6 py-2 md:py-3 border-l border-gray-100 min-w-[200px] md:min-w-[250px]">${noteHtml}</td>
+                    </tr>
+                `;
+            }
+
+            document.getElementById('kpiTotalSelisih').innerText = totalSelisih.toLocaleString('id-ID');
+            document.getElementById('kpiAvgPersen').innerText = validWeeks > 0 ? (sumPersen/validWeeks).toFixed(2) + '%' : '0%';
+            document.getElementById('kpiMaxWeek').innerText = maxSelisihAbs > -1 ? maxWeekLabel : 'Tidak Ada';
+
+            renderChart(data.labels, data.selisih, data.persentase);
+        }
+
+        function renderChart(labels, selisihData, persenData) {
+            const ctx = document.getElementById('varianceChart').getContext('2d');
+            
+            const barColors = selisihData.map(val => val < 0 ? 'rgba(239, 68, 68, 0.85)' : 'rgba(16, 185, 129, 0.85)');
+            const hoverColors = selisihData.map(val => val < 0 ? 'rgba(239, 68, 68, 1)' : 'rgba(16, 185, 129, 1)');
+
+            Chart.defaults.color = '#64748b'; 
+            Chart.defaults.font.family = 'Inter';
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            // Penyesuaian ukuran chart untuk mobile
+            const isMobile = window.innerWidth < 768;
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Kuantitas Selisih',
+                            data: selisihData,
+                            backgroundColor: barColors,
+                            hoverBackgroundColor: hoverColors,
+                            borderRadius: 4,
+                            yAxisID: 'y',
+                            order: 2,
+                            barPercentage: isMobile ? 0.8 : 0.6
+                        },
+                        {
+                            label: 'Persentase Varian (%)',
+                            data: persenData,
+                            type: 'line',
+                            borderColor: '#3b82f6', 
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4, 
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1,
+                            pointRadius: isMobile ? 3 : 4,
+                            pointHoverRadius: isMobile ? 5 : 6,
+                            fill: true,
+                            yAxisID: 'y1',
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#0f172a',
+                            bodyColor: '#475569',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: isMobile ? 8 : 12,
+                            boxPadding: isMobile ? 4 : 6,
+                            usePointStyle: true,
+                            titleFont: { size: isMobile ? 11 : 13, weight: 'bold' },
+                            bodyFont: { size: isMobile ? 10 : 12 },
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { maxRotation: 45, minRotation: 0, font: { size: isMobile ? 9 : 11 } }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                            title: { display: !isMobile, text: 'Kuantitas', color: '#64748b' },
+                            ticks: { font: { size: isMobile ? 9 : 11 } }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false }, 
+                            title: { display: !isMobile, text: 'Persentase (%)', color: '#64748b' },
+                            ticks: { font: { size: isMobile ? 9 : 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function saveNote(absoluteIdx, relativeIdx) {
+            const input = document.getElementById(`note_input_${relativeIdx}`);
+            const btn = document.getElementById(`note_btn_${relativeIdx}`);
+            const newNote = input.value.trim();
+            const plant = document.getElementById('plantSelect').value;
+
+            const originalBtnHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            try {
+                const res = await callAPI('saveMaterialNote', {
+                    plant, 
+                    matCode: selectedMaterialCode, 
+                    absoluteIdx, 
+                    note: newNote
+                });
+
+                if (res.success) {
+                    if (currentRawData && currentRawData.catatan) {
+                        currentRawData.catatan[absoluteIdx] = newNote !== '' ? newNote : '-';
+                    }
+
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    btn.classList.replace('bg-primary', 'bg-emerald-500');
+                    btn.classList.replace('hover:bg-blue-600', 'hover:bg-emerald-600');
+                    showToast('Catatan berhasil disimpan', 'success');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalBtnHtml;
+                        btn.classList.replace('bg-emerald-500', 'bg-primary');
+                        btn.classList.replace('hover:bg-emerald-600', 'hover:bg-blue-600');
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    }, 2000);
+                } else {
+                    showToast(res.message || "Gagal menyimpan catatan.", "error");
+                    btn.innerHTML = originalBtnHtml;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
+            } catch (e) {
+                showToast("Koneksi bermasalah. Gagal menyimpan.", "error");
+                btn.innerHTML = originalBtnHtml;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        // PWA Implementation (Single-file technique using JS Blobs for Manifest & Service Worker)
+        window.addEventListener('load', () => {
+            // 1. Generate Manifest Dynamically
+            const manifestData = {
+                "name": "Variance Gwip Dashboard",
+                "short_name": "VarGwip",
+                "description": "Aplikasi PWA untuk Analisis Selisih & Varian Material",
+                "start_url": "./",
+                "display": "standalone",
+                "background_color": "#F1F5F9",
+                "theme_color": "#3B82F6",
+                "icons": [
+                    {
+                        // Placeholder icon (SVG Base64) for PWA requirements
+                        "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI1MCIgZmlsbD0iIzNCODJGNyIvPjxwYXRoIGQ9Ik0zMCA1MGwyMCAyMCAzMC0zMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjEwIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=",
+                        "sizes": "192x192",
+                        "type": "image/svg+xml"
+                    }
+                ]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+            const manifestUrl = URL.createObjectURL(manifestBlob);
+            document.getElementById('manifest-placeholder').setAttribute('href', manifestUrl);
+
+            // 2. Register Generic Offline Service Worker
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'vargwip-cache-v1';
+                    self.addEventListener('install', event => {
+                        self.skipWaiting();
+                    });
+                    self.addEventListener('activate', event => {
+                        event.waitUntil(self.clients.claim());
+                    });
+                    self.addEventListener('fetch', event => {
+                        // Offline fallback logic for PWA
+                        if (event.request.method === 'GET' && event.request.url.startsWith('http')) {
+                            event.respondWith(
+                                fetch(event.request).then(response => {
+                                    const resClone = response.clone();
+                                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+                                    return response;
+                                }).catch(() => caches.match(event.request))
+                            );
+                        }
+                    });
+                `;
+                const swBlob = new Blob([swCode], {type: 'application/javascript'});
+                const swUrl = URL.createObjectURL(swBlob);
+                
+                navigator.serviceWorker.register(swUrl).then(registration => {
+                    console.log('PWA ServiceWorker registered successfully!');
+                }).catch(err => {
+                    console.log('PWA ServiceWorker registration failed: ', err);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
