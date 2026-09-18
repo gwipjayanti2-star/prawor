@@ -13,6 +13,7 @@
     <link id="manifest-placeholder" rel="manifest" href="">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <script>
@@ -616,7 +617,7 @@
                         const json = await res.json();
                         resolve(json);
                     } catch (e) { 
-                        console.error(`API Error [${action}]:`, e);
+                        console.warn(`API Error [${action}]:`, e);
                         reject(e); 
                     }
                 } else {
@@ -720,44 +721,53 @@
                 // DATA PARSER SMART (Memperbaiki pembacaan Selisih dan Persentase)
                 // ==============================================================
                 allWeeklyData = rawList.map(m => {
-                    // Helper cerdas untuk mencari key (judul kolom) mengabaikan huruf besar/kecil/spasi/simbol
+                    // Helper cerdas yang memprioritaskan urutan kata kunci (Kode > ID)
                     const findKey = (obj, possibleKeys) => {
-                        for (let k of Object.keys(obj)) {
-                            const normalized = k.toLowerCase().replace(/[^a-z0-9]/g, '');
-                            if (possibleKeys.includes(normalized)) return obj[k];
+                        const normalizedKeys = Object.keys(obj).reduce((acc, k) => {
+                            acc[k.toLowerCase().replace(/[^a-z0-9]/g, '')] = k;
+                            return acc;
+                        }, {});
+
+                        for (let pk of possibleKeys) {
+                            if (normalizedKeys[pk] !== undefined) {
+                                return obj[normalizedKeys[pk]];
+                            }
                         }
                         return undefined;
                     };
 
-                    // Helper untuk parsing string ke angka jika data spreadsheet dikirim sebagai format string ("1,500" atau "10%")
+                    // Helper cerdas & aman untuk memperbaiki format angka Excel (menangkal masalah koma desimal)
                     const parseNumberSafe = (val) => {
                         if (val === undefined || val === null || val === '') return 0;
                         if (typeof val === 'number') return val;
                         
-                        // Menghapus format koma/titik ribuan dan mengubahnya menjadi angka native javascript
                         let strVal = String(val).trim();
-                        // Mengganti koma (,) menjadi titik (.) jika data berasal dari setingan Excel Indonesia
-                        strVal = strVal.replace(/,/g, '.');
-                        // Menghapus semua karakter kecuali digit, titik (desimal), dan minus
-                        strVal = strVal.replace(/[^\d.\-]/g, '');
+                        strVal = strVal.replace(/[^0-9.,\-]/g, '');
                         
-                        // Jika ada titik lebih dari 1 (misal 1.500.000 menjadi format kacau), buang titik awal 
-                        const titikMatch = strVal.match(/\./g);
-                        if (titikMatch && titikMatch.length > 1) {
-                            // Menghapus semua titik kecuali titik desimal terakhir
-                            let parts = strVal.split('.');
-                            strVal = parts.slice(0, -1).join('') + '.' + parts[parts.length - 1];
+                        const lastDot = strVal.lastIndexOf('.');
+                        const lastComma = strVal.lastIndexOf(',');
+                        
+                        if (lastDot > -1 && lastComma > -1) {
+                            if (lastDot > lastComma) strVal = strVal.replace(/,/g, '');
+                            else strVal = strVal.replace(/\./g, '').replace(',', '.');
+                        } else if (lastComma > -1) {
+                            const parts = strVal.split(',');
+                            if (parts[parts.length - 1].length === 3) strVal = strVal.replace(/,/g, '');
+                            else strVal = strVal.replace(/,/g, '.');
+                        } else if (lastDot > -1) {
+                            const parts = strVal.split('.');
+                            if (parts[parts.length - 1].length === 3) strVal = strVal.replace(/\./g, '');
                         }
 
                         let num = parseFloat(strVal);
                         return isNaN(num) ? 0 : num;
                     };
 
-                    // Temukan data menggunakan variasi nama kolom (karena nama kolom spreadsheet tidak selalu konsisten)
-                    let rawKode = findKey(m, ['kode', 'kodematerial', 'materialcode', 'id']);
-                    let rawNama = findKey(m, ['nama', 'namamaterial', 'deskripsi', 'description', 'materialname']);
-                    let rawSelisih = findKey(m, ['selisih', 'qtyselisih', 'selisihqty', 'variance', 'varian', 'qty', 'varianceqty']);
-                    let rawPersentase = findKey(m, ['persentase', 'persen', 'varianpersen', 'variancepercent', 'percentage', 'perbedaan']);
+                    // Temukan data menggunakan prioritas nama kolom
+                    let rawKode = findKey(m, ['kodematerial', 'materialcode', 'kode', 'itemcode', 'sku', 'id', 'no']);
+                    let rawNama = findKey(m, ['namamaterial', 'materialname', 'nama', 'deskripsi', 'description']);
+                    let rawSelisih = findKey(m, ['qtyselisih', 'selisihqty', 'varianceqty', 'selisih', 'variance', 'varian', 'qty']);
+                    let rawPersentase = findKey(m, ['varianpersen', 'variancepercent', 'persentase', 'persen', 'percentage', 'perbedaan']);
 
                     return {
                         kode: rawKode ? String(rawKode) : '-',
@@ -1042,6 +1052,8 @@
             const ctx = document.getElementById('detailVarianceChart').getContext('2d');
             if(detailChart) detailChart.destroy();
             
+            Chart.register(ChartDataLabels);
+            
             detailChart = new Chart(ctx, {
                 type: 'bar',
                 data: { 
@@ -1074,6 +1086,9 @@
                     ]
                 },
                 options: { 
+                    layout: {
+                        padding: { top: 25, bottom: 20 }
+                    },
                     responsive:true, 
                     maintainAspectRatio:false, 
                     plugins:{
@@ -1083,6 +1098,25 @@
                             titleFont: { size: 12, weight: 'bold' },
                             padding: 10,
                             cornerRadius: 8
+                        },
+                        datalabels: {
+                            display: function(context) {
+                                return context.dataset.label === 'Qty Selisih';
+                            },
+                            color: function(context) {
+                                return context.dataset.data[context.dataIndex] < 0 ? '#EF4444' : '#10B981';
+                            },
+                            font: { weight: '800', size: 10, family: 'Inter' },
+                            anchor: function(context) {
+                                return context.dataset.data[context.dataIndex] < 0 ? 'start' : 'end';
+                            },
+                            align: function(context) {
+                                return context.dataset.data[context.dataIndex] < 0 ? 'bottom' : 'top';
+                            },
+                            formatter: function(value) {
+                                return value !== 0 ? value.toLocaleString('id-ID') : '0';
+                            },
+                            offset: 4
                         }
                     }, 
                     scales:{ 
