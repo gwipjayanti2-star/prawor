@@ -143,7 +143,7 @@
             </form>
             
             <div class="mt-6 text-center border-t border-slate-800 pt-4">
-                <p class="text-[11px] text-slate-500">Versi 3.5 Pro • Multi-Plant Material Intelligence</p>
+                <p class="text-[11px] text-slate-500">Versi 3.6 Pro • Multi-Plant Material Intelligence</p>
             </div>
         </div>
     </div>
@@ -519,7 +519,7 @@
     </div>
 
     <script>
-        // Endpoint Google Apps Script - URL diperbarui dan dinormalisasi
+        // Endpoint Google Apps Script
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwqjlmXywAb7tVGNYvElY4e7yIEWWmrhwYaCrOc65DoRdDNXN4T6ZbjZ4VEshrAWUQhPQ/exec"; 
         
         // Application State
@@ -527,10 +527,10 @@
         let currentSelectedPlant = "";
         let currentSelectedWeek = "";
         
-        let allWeeklyData = [];          // Raw full dataset dari backend
-        let filteredWeeklyData = [];     // Dataset yang difilter 
-        let currentDetailRawData = null; // History detail untuk modal
-        let currentActiveMatCode = "";   // Kode materi aktif
+        let allWeeklyData = [];          
+        let filteredWeeklyData = [];     
+        let currentDetailRawData = null; 
+        let currentActiveMatCode = "";   
         
         let currentStatusFilter = 'ALL'; 
         let currentSortMode = 'MINUS_DESC';
@@ -594,7 +594,6 @@
             }
         });
 
-        // Diperbarui: Fetch call untuk GAS handling redirection dan postData
         async function callAPI(action, payload) {
             return new Promise(async (resolve, reject) => {
                 if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -603,14 +602,13 @@
                 else if (GAS_API_URL && GAS_API_URL.trim().length > 10) {
                     try {
                         const url = new URL(GAS_API_URL);
-                        // Menambahkan parameter action agar lebih mudah dibaca oleh backend
                         url.searchParams.append('action', action);
                         
                         const res = await fetch(url.toString(), { 
                             method: 'POST', 
                             body: JSON.stringify(payload), 
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                            redirect: 'follow' // Wajib untuk mengikuti 302 dari Google
+                            redirect: 'follow' 
                         });
                         
                         if (!res.ok) throw new Error("Koneksi HTTP bermasalah"); 
@@ -642,16 +640,13 @@
             btn.disabled = true;
 
             try {
-                // Mencoba validasi dengan API asli
                 const res = await callAPI('verifyLogin', {u, p});
-                
                 if (res && res.success) {
                     suksesLogin();
                 } else {
                     tampilkanErrorLogin(res.message || "Username atau Password salah.");
                 }
             } catch (e) {
-                // Fallback login bypass jika backend gagal dihubungi namun user mencoba akses 'admin'
                 if(u === 'admin') {
                     console.warn("API Gagal, melakukan bypass mode admin karena konfigurasi offline");
                     suksesLogin();
@@ -711,7 +706,6 @@
                 const apiResponse = await callAPI('getMaterialList', {plant, week});
                 
                 let rawList = [];
-                // Mengakomodasi jika kembalian berupa array langsung, atau terbungkus di dalam properti {data: [...]}
                 if (Array.isArray(apiResponse)) {
                     rawList = apiResponse;
                 } else if (apiResponse && Array.isArray(apiResponse.data)) {
@@ -722,19 +716,60 @@
 
                 if(rawList.length === 0) throw new Error("Data spreadsheet kosong");
 
-                // Menggunakan Data Real dari Backend
+                // ==============================================================
+                // DATA PARSER SMART (Memperbaiki pembacaan Selisih dan Persentase)
+                // ==============================================================
                 allWeeklyData = rawList.map(m => {
+                    // Helper cerdas untuk mencari key (judul kolom) mengabaikan huruf besar/kecil/spasi/simbol
+                    const findKey = (obj, possibleKeys) => {
+                        for (let k of Object.keys(obj)) {
+                            const normalized = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                            if (possibleKeys.includes(normalized)) return obj[k];
+                        }
+                        return undefined;
+                    };
+
+                    // Helper untuk parsing string ke angka jika data spreadsheet dikirim sebagai format string ("1,500" atau "10%")
+                    const parseNumberSafe = (val) => {
+                        if (val === undefined || val === null || val === '') return 0;
+                        if (typeof val === 'number') return val;
+                        
+                        // Menghapus format koma/titik ribuan dan mengubahnya menjadi angka native javascript
+                        let strVal = String(val).trim();
+                        // Mengganti koma (,) menjadi titik (.) jika data berasal dari setingan Excel Indonesia
+                        strVal = strVal.replace(/,/g, '.');
+                        // Menghapus semua karakter kecuali digit, titik (desimal), dan minus
+                        strVal = strVal.replace(/[^\d.\-]/g, '');
+                        
+                        // Jika ada titik lebih dari 1 (misal 1.500.000 menjadi format kacau), buang titik awal 
+                        const titikMatch = strVal.match(/\./g);
+                        if (titikMatch && titikMatch.length > 1) {
+                            // Menghapus semua titik kecuali titik desimal terakhir
+                            let parts = strVal.split('.');
+                            strVal = parts.slice(0, -1).join('') + '.' + parts[parts.length - 1];
+                        }
+
+                        let num = parseFloat(strVal);
+                        return isNaN(num) ? 0 : num;
+                    };
+
+                    // Temukan data menggunakan variasi nama kolom (karena nama kolom spreadsheet tidak selalu konsisten)
+                    let rawKode = findKey(m, ['kode', 'kodematerial', 'materialcode', 'id']);
+                    let rawNama = findKey(m, ['nama', 'namamaterial', 'deskripsi', 'description', 'materialname']);
+                    let rawSelisih = findKey(m, ['selisih', 'qtyselisih', 'selisihqty', 'variance', 'varian', 'qty', 'varianceqty']);
+                    let rawPersentase = findKey(m, ['persentase', 'persen', 'varianpersen', 'variancepercent', 'percentage', 'perbedaan']);
+
                     return {
-                        kode: m.kode || '-',
-                        nama: m.nama || 'Tanpa Nama',
-                        selisih: m.selisih !== undefined ? parseFloat(m.selisih) : 0,
-                        persentase: m.persentase !== undefined ? parseFloat(m.persentase) : 0
+                        kode: rawKode ? String(rawKode) : '-',
+                        nama: rawNama ? String(rawNama) : 'Tanpa Nama',
+                        selisih: parseNumberSafe(rawSelisih),
+                        persentase: parseNumberSafe(rawPersentase)
                     };
                 });
 
             } catch (e) {
                 console.warn("Menggunakan Mock Data (API Gagal/Kosong):", e);
-                // Fallback Mock Dataset apabila terjadi kegagalan atau struktur API belum disiapkan di backend
+                // Fallback Mock Dataset
                 const mockBase = [
                     {kode: 'RM001', nama: 'Flour High Protein 25kg'},
                     {kode: 'RM002', nama: 'Refined Fine Sugar 50kg'},
@@ -759,7 +794,6 @@
                 
                 showToast("Menampilkan data dummy karena server gagal merespons", "error");
             } finally {
-                // Selalu eksekusi UI rendering
                 applyFiltersAndSort();
                 generateSmartExecutiveInsights();
 
@@ -949,7 +983,6 @@
             document.getElementById('modalLoader').classList.replace('hidden', 'flex');
 
             try {
-                // Melakukan request ke API asli
                 const data = await callAPI('getMaterialData', { plant: currentSelectedPlant, matCode: matCode });
                 
                 if (!data || !data.labels || data.labels.length === 0) {
@@ -960,7 +993,6 @@
 
             } catch(e) {
                 console.warn("Menggunakan mockup detail karena data server gagal/kosong:", e);
-                // Fallback Mock Dataset
                 const cw = parseInt(currentSelectedWeek);
                 const lbls = []; const sel = []; const per = []; const cat = [];
                 for(let i=1; i<=52; i++) {
@@ -979,7 +1011,7 @@
                 let targetIdx = data.labels.findIndex(l => l.includes(currentSelectedWeek));
                 if (targetIdx === -1) targetIdx = data.labels.length - 1;
                 
-                const startIdx = Math.max(0, targetIdx - 4); // Menarik 5 minggu terakhir
+                const startIdx = Math.max(0, targetIdx - 4); 
                 
                 const filteredData = {
                     labels: data.labels.slice(startIdx, targetIdx + 1),
@@ -1109,7 +1141,6 @@
             btn.disabled = true;
 
             try {
-                // Post save data to API
                 const res = await callAPI('saveMaterialNote', {
                     plant: currentSelectedPlant, 
                     matCode: matCode, 
