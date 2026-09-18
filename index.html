@@ -235,7 +235,7 @@
             <div id="weeklyDataLoader" class="hidden flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
                 <div class="loader-spinner mb-4 border-t-blue-600"></div>
                 <p class="text-slate-700 text-sm font-semibold animate-pulse">Menarik & menganalisis seluruh data material...</p>
-                <p class="text-slate-400 text-xs mt-1">Sistem sedang mengkalkulasi selisih & tren mingguan</p>
+                <p class="text-slate-400 text-xs mt-1">Mengambil dari sistem spreadsheet secara realtime</p>
             </div>
 
             <!-- Empty State -->
@@ -440,7 +440,7 @@
                             <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
                                 <i class="fas fa-chart-bar text-blue-600"></i> Tren Selisih 5 Minggu Terakhir
                             </h4>
-                            <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-md font-medium">Dual Axis: Qty (Batang) & Varian Line (%)</span>
+                            <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-md font-medium">Dual Axis: Qty & Varian Line (%)</span>
                         </div>
                         <div class="w-full h-44 sm:h-56 relative">
                             <canvas id="detailVarianceChart"></canvas>
@@ -519,7 +519,7 @@
     </div>
 
     <script>
-        // Endpoint Google Apps Script
+        // Endpoint Google Apps Script - URL diperbarui dan dinormalisasi
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbwqjlmXywAb7tVGNYvElY4e7yIEWWmrhwYaCrOc65DoRdDNXN4T6ZbjZ4VEshrAWUQhPQ/exec"; 
         
         // Application State
@@ -527,15 +527,14 @@
         let currentSelectedPlant = "";
         let currentSelectedWeek = "";
         
-        let allWeeklyData = [];          // Raw full dataset from server/mock
-        let filteredWeeklyData = [];     // Currently filtered & sorted dataset
-        let currentDetailRawData = null; // Specific material history
-        let currentActiveMatCode = "";   // Selected material code in modal
+        let allWeeklyData = [];          // Raw full dataset dari backend
+        let filteredWeeklyData = [];     // Dataset yang difilter 
+        let currentDetailRawData = null; // History detail untuk modal
+        let currentActiveMatCode = "";   // Kode materi aktif
         
-        let currentStatusFilter = 'ALL'; // ALL, MINUS, SURPLUS, SESUAI
+        let currentStatusFilter = 'ALL'; 
         let currentSortMode = 'MINUS_DESC';
 
-        // Get Previous ISO Week Number
         function getPreviousWeekNumber() {
             const d = new Date();
             d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
@@ -544,7 +543,6 @@
             return weekNo > 1 ? weekNo - 1 : 52; 
         }
 
-        // Custom Toast Notification System
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -570,7 +568,6 @@
             }, 3200);
         }
 
-        // Toggle Password Masking
         function togglePasswordVisibility() {
             const pwd = document.getElementById('password');
             const eye = document.getElementById('eyeIcon');
@@ -589,7 +586,7 @@
                 badge.innerHTML = '<i class="fas fa-server text-emerald-400"></i> Mode Native GAS (Online)';
                 badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
             } else if (GAS_API_URL && GAS_API_URL.trim().length > 10) {
-                badge.innerHTML = '<i class="fas fa-wifi text-cyan-400"></i> Terhubung API Cloud';
+                badge.innerHTML = '<i class="fas fa-wifi text-cyan-400"></i> Terhubung API Cloud Realtime';
                 badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
             } else {
                 badge.innerHTML = '<i class="fas fa-eye-slash text-slate-400"></i> Mode Preview Offline';
@@ -597,6 +594,7 @@
             }
         });
 
+        // Diperbarui: Fetch call untuk GAS handling redirection dan postData
         async function callAPI(action, payload) {
             return new Promise(async (resolve, reject) => {
                 if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -604,16 +602,23 @@
                 } 
                 else if (GAS_API_URL && GAS_API_URL.trim().length > 10) {
                     try {
-                        const url = new URL(GAS_API_URL); url.searchParams.append('action', action);
+                        const url = new URL(GAS_API_URL);
+                        // Menambahkan parameter action agar lebih mudah dibaca oleh backend
+                        url.searchParams.append('action', action);
+                        
                         const res = await fetch(url.toString(), { 
                             method: 'POST', 
                             body: JSON.stringify(payload), 
-                            headers: { 'Content-Type': 'text/plain;charset=utf-8' } 
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            redirect: 'follow' // Wajib untuk mengikuti 302 dari Google
                         });
-                        if (!res.ok) throw new Error("Koneksi jaringan bermasalah"); 
-                        resolve(await res.json());
+                        
+                        if (!res.ok) throw new Error("Koneksi HTTP bermasalah"); 
+                        
+                        const json = await res.json();
+                        resolve(json);
                     } catch (e) { 
-                        console.error("API Call Error:", e);
+                        console.error(`API Error [${action}]:`, e);
                         reject(e); 
                     }
                 } else {
@@ -637,26 +642,33 @@
             btn.disabled = true;
 
             try {
-                const res = await callAPI('verifyLogin', {u, p}).catch(() => {
-                    // Fallback login bypass if API fails
-                    if(u === 'admin') return {success: true};
-                    return {success: false, message: 'Gagal terhubung ke server otentikasi.'};
-                });
+                // Mencoba validasi dengan API asli
+                const res = await callAPI('verifyLogin', {u, p});
                 
-                if (res.success) {
-                    document.getElementById('loginView').classList.add('hidden'); 
-                    document.getElementById('dashboardView').classList.remove('hidden');
-                    
-                    populateWeekDropdown(); 
-                    showToast('Selamat Datang Kembali! Akses Diberikan.', 'success');
+                if (res && res.success) {
+                    suksesLogin();
                 } else {
-                    err.innerText = res.message || "Username atau Password salah."; 
-                    err.classList.remove('hidden'); 
-                    btn.innerHTML = '<span>Masuk ke Dashboard Smart</span><i class="fas fa-arrow-right text-xs"></i>';
-                    btn.disabled = false;
+                    tampilkanErrorLogin(res.message || "Username atau Password salah.");
                 }
             } catch (e) {
-                err.innerText = "Gagal menghubungkan ke server."; 
+                // Fallback login bypass jika backend gagal dihubungi namun user mencoba akses 'admin'
+                if(u === 'admin') {
+                    console.warn("API Gagal, melakukan bypass mode admin karena konfigurasi offline");
+                    suksesLogin();
+                } else {
+                    tampilkanErrorLogin("Gagal menghubungkan ke server Spreadsheet."); 
+                }
+            }
+
+            function suksesLogin() {
+                document.getElementById('loginView').classList.add('hidden'); 
+                document.getElementById('dashboardView').classList.remove('hidden');
+                populateWeekDropdown(); 
+                showToast('Selamat Datang Kembali! Akses Diberikan.', 'success');
+            }
+
+            function tampilkanErrorLogin(msg) {
+                err.innerText = msg; 
                 err.classList.remove('hidden'); 
                 btn.innerHTML = '<span>Masuk ke Dashboard Smart</span><i class="fas fa-arrow-right text-xs"></i>';
                 btn.disabled = false;
@@ -688,7 +700,6 @@
             currentSelectedPlant = plant;
             currentSelectedWeek = week;
 
-            // UI Refresh States
             const refreshIcon = document.getElementById('refreshIcon');
             refreshIcon.classList.add('fa-spin');
 
@@ -697,27 +708,42 @@
             document.getElementById('weeklyDataLoader').classList.replace('hidden', 'flex');
 
             try {
+                const apiResponse = await callAPI('getMaterialList', {plant, week});
+                
                 let rawList = [];
-                try {
-                    rawList = await callAPI('getMaterialList', {plant, week});
-                } catch(e) {
-                    // Comprehensive realistic fallback dataset
-                    rawList = [
-                        {kode: 'RM001', nama: 'Flour High Protein 25kg'},
-                        {kode: 'RM002', nama: 'Refined Fine Sugar 50kg'},
-                        {kode: 'RM008', nama: 'Margarine Industri 15kg'},
-                        {kode: 'PM005', nama: 'Carton Box Outer Type A'},
-                        {kode: 'PM012', nama: 'Plastic Roll Packaging 30 micron'},
-                        {kode: 'RM034', nama: 'Palm Oil Refined 20L'},
-                        {kode: 'PM022', nama: 'Label Sticker Glossy Premium'},
-                        {kode: 'RM015', nama: 'Skim Milk Powder New Zealand'},
-                        {kode: 'PM040', nama: 'Aluminium Foil Barrier Roll'},
-                        {kode: 'RM009', nama: 'Emulsifier Food Grade'}
-                    ];
+                // Mengakomodasi jika kembalian berupa array langsung, atau terbungkus di dalam properti {data: [...]}
+                if (Array.isArray(apiResponse)) {
+                    rawList = apiResponse;
+                } else if (apiResponse && Array.isArray(apiResponse.data)) {
+                    rawList = apiResponse.data;
+                } else {
+                    throw new Error("Format response API tidak dikenali atau kosong");
                 }
 
-                // Generate consistent variance mockup if backend data not pre-computed
-                allWeeklyData = rawList.map((m, index) => {
+                if(rawList.length === 0) throw new Error("Data spreadsheet kosong");
+
+                // Menggunakan Data Real dari Backend
+                allWeeklyData = rawList.map(m => {
+                    return {
+                        kode: m.kode || '-',
+                        nama: m.nama || 'Tanpa Nama',
+                        selisih: m.selisih !== undefined ? parseFloat(m.selisih) : 0,
+                        persentase: m.persentase !== undefined ? parseFloat(m.persentase) : 0
+                    };
+                });
+
+            } catch (e) {
+                console.warn("Menggunakan Mock Data (API Gagal/Kosong):", e);
+                // Fallback Mock Dataset apabila terjadi kegagalan atau struktur API belum disiapkan di backend
+                const mockBase = [
+                    {kode: 'RM001', nama: 'Flour High Protein 25kg'},
+                    {kode: 'RM002', nama: 'Refined Fine Sugar 50kg'},
+                    {kode: 'RM008', nama: 'Margarine Industri 15kg'},
+                    {kode: 'PM005', nama: 'Carton Box Outer Type A'},
+                    {kode: 'PM012', nama: 'Plastic Roll Packaging 30 micron'}
+                ];
+
+                allWeeklyData = mockBase.map((m, index) => {
                     const seed = (index + 1) * parseInt(week);
                     let mockSelisih = 0;
                     if(seed % 3 === 0) mockSelisih = -(Math.floor((seed * 17) % 850) + 25);
@@ -728,33 +754,22 @@
                     const baseTarget = 1500 + (index * 250);
                     const mockPersen = mockSelisih === 0 ? 0 : parseFloat(((mockSelisih / baseTarget) * 100).toFixed(2));
                     
-                    return {
-                        kode: m.kode,
-                        nama: m.nama,
-                        selisih: mockSelisih,
-                        persentase: mockPersen
-                    };
+                    return { kode: m.kode, nama: m.nama, selisih: mockSelisih, persentase: mockPersen };
                 });
-
-                // Apply initial filters and render
+                
+                showToast("Menampilkan data dummy karena server gagal merespons", "error");
+            } finally {
+                // Selalu eksekusi UI rendering
                 applyFiltersAndSort();
                 generateSmartExecutiveInsights();
 
                 document.getElementById('weeklyDataLoader').classList.replace('flex', 'hidden');
                 document.getElementById('weeklyDataContainer').classList.replace('hidden', 'flex');
                 document.getElementById('lblTableWeek').innerText = `Plant ${plant} - Week ${week}`;
-
-            } catch (e) {
-                console.error(e);
-                document.getElementById('weeklyDataLoader').classList.replace('flex', 'hidden');
-                document.getElementById('emptyState').classList.replace('hidden', 'flex');
-                showToast("Gagal memuat data minggu yang dipilih.", "error");
-            } finally {
                 refreshIcon.classList.remove('fa-spin');
             }
         }
 
-        // Smart Executive Insights Engine (AI Narrative Generator)
         function generateSmartExecutiveInsights() {
             if (!allWeeklyData.length) return;
 
@@ -763,10 +778,8 @@
             const surplusList = allWeeklyData.filter(i => i.selisih > 0);
             const sesuaiList = allWeeklyData.filter(i => i.selisih === 0);
 
-            // Accuracy %
             const accuracyRate = (((sesuaiList.length + (surplusList.length * 0.5)) / total) * 100).toFixed(1);
             
-            // Critical Item (Biggest Minus)
             const sortedMinus = [...minusList].sort((a,b) => a.selisih - b.selisih);
             const topRisk = sortedMinus.length > 0 ? sortedMinus[0] : null;
 
@@ -780,7 +793,6 @@
             }
             narrative += `Total akumulasi defisit fisik tercatat sebesar **-${totalMinusQty.toLocaleString('id-ID')} unit**. Direkomendasikan melakukan verifikasi WOR pada material terkritis.`;
 
-            // Render Markdown-bold formatting
             document.getElementById('insightBody').innerHTML = narrative.replace(/\*\*(.*?)\*\*/g, '<b class="text-white font-bold">$1</b>');
             document.getElementById('insightAccuracy').innerText = `${accuracyRate}%`;
             document.getElementById('insightAccuracyBar').style.width = `${Math.min(100, Math.max(0, accuracyRate))}%`;
@@ -788,8 +800,6 @@
 
         function setFilterStatus(status) {
             currentStatusFilter = status;
-            
-            // Update Tab Styling
             ['ALL', 'MINUS', 'SURPLUS', 'SESUAI'].forEach(st => {
                 const btn = document.getElementById(`btnTab${st.charAt(0) + st.slice(1).toLowerCase()}`);
                 if (btn) {
@@ -800,7 +810,6 @@
                     }
                 }
             });
-
             applyFiltersAndSort();
         }
 
@@ -809,7 +818,6 @@
             const btnClear = document.getElementById('btnClearSearch');
             if (query.length > 0) btnClear.classList.remove('hidden');
             else btnClear.classList.add('hidden');
-
             applyFiltersAndSort();
         }
 
@@ -827,16 +835,14 @@
         function applyFiltersAndSort() {
             const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
 
-            // 1. Filter Status
             filteredWeeklyData = allWeeklyData.filter(item => {
                 const s = parseFloat(item.selisih);
                 if (currentStatusFilter === 'MINUS') return s < 0;
                 if (currentStatusFilter === 'SURPLUS') return s > 0;
                 if (currentStatusFilter === 'SESUAI') return s === 0;
-                return true; // ALL
+                return true;
             });
 
-            // 2. Filter Search Query
             if (searchQuery) {
                 filteredWeeklyData = filteredWeeklyData.filter(item => 
                     item.nama.toLowerCase().includes(searchQuery) || 
@@ -844,7 +850,6 @@
                 );
             }
 
-            // 3. Sorting
             filteredWeeklyData.sort((a, b) => {
                 if (currentSortMode === 'MINUS_DESC') return parseFloat(a.selisih) - parseFloat(b.selisih);
                 if (currentSortMode === 'SURPLUS_DESC') return parseFloat(b.selisih) - parseFloat(a.selisih);
@@ -867,7 +872,6 @@
             document.getElementById('kpiTotalMinus').innerText = countMinus;
             document.getElementById('kpiTotalSurplus').innerText = countSurplus;
             document.getElementById('kpiTotalSesuai').innerText = countSesuai;
-
             document.getElementById('tableCountSummary').innerText = `Menampilkan ${filteredWeeklyData.length} dari ${allWeeklyData.length} material`;
         }
 
@@ -883,7 +887,6 @@
                 noSearchState.classList.add('hidden');
             }
 
-            // Maximum absolute selisih for relative bar width calculations
             const maxAbsSelisih = Math.max(...allWeeklyData.map(i => Math.abs(i.selisih)), 1);
 
             filteredWeeklyData.forEach((item, idx) => {
@@ -916,7 +919,6 @@
                         </td>
                         <td class="px-4 py-3 text-right">
                             <div class="font-mono font-black ${textClass}">${s.toLocaleString('id-ID')}</div>
-                            <!-- Inline Variance Visual Bar -->
                             ${s !== 0 ? `
                             <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden ml-auto max-w-[120px]">
                                 <div class="${barBg} h-full rounded-full" style="width: ${absWidthPercent}%"></div>
@@ -947,27 +949,37 @@
             document.getElementById('modalLoader').classList.replace('hidden', 'flex');
 
             try {
-                const data = await callAPI('getMaterialData', { plant: currentSelectedPlant, matCode: matCode }).catch(() => {
-                     // Robust fallback data for trend chart
-                     const cw = parseInt(currentSelectedWeek);
-                     const lbls = []; const sel = []; const per = []; const cat = [];
-                     for(let i=1; i<=52; i++) {
-                         lbls.push(`Week ${i}`);
-                         const val = i <= cw ? Math.floor(Math.random() * 1800 - 900) : 0;
-                         sel.push(val);
-                         per.push(i <= cw ? parseFloat((val / 1500 * 100).toFixed(2)) : 0);
-                         cat.push('-');
-                     }
-                     return { labels: lbls, selisih: sel, persentase: per, catatan: cat };
-                });
-
-                currentDetailRawData = data;
+                // Melakukan request ke API asli
+                const data = await callAPI('getMaterialData', { plant: currentSelectedPlant, matCode: matCode });
                 
-                // Target index calculation
+                if (!data || !data.labels || data.labels.length === 0) {
+                     throw new Error("Format respons tidak valid");
+                }
+                
+                prosesDanTampilkanChart(data, matCode);
+
+            } catch(e) {
+                console.warn("Menggunakan mockup detail karena data server gagal/kosong:", e);
+                // Fallback Mock Dataset
+                const cw = parseInt(currentSelectedWeek);
+                const lbls = []; const sel = []; const per = []; const cat = [];
+                for(let i=1; i<=52; i++) {
+                    lbls.push(`Week ${i}`);
+                    const val = i <= cw ? Math.floor(Math.random() * 1800 - 900) : 0;
+                    sel.push(val);
+                    per.push(i <= cw ? parseFloat((val / 1500 * 100).toFixed(2)) : 0);
+                    cat.push('-');
+                }
+                
+                prosesDanTampilkanChart({ labels: lbls, selisih: sel, persentase: per, catatan: cat }, matCode);
+            }
+
+            function prosesDanTampilkanChart(data, matCode) {
+                currentDetailRawData = data;
                 let targetIdx = data.labels.findIndex(l => l.includes(currentSelectedWeek));
                 if (targetIdx === -1) targetIdx = data.labels.length - 1;
                 
-                const startIdx = Math.max(0, targetIdx - 4);
+                const startIdx = Math.max(0, targetIdx - 4); // Menarik 5 minggu terakhir
                 
                 const filteredData = {
                     labels: data.labels.slice(startIdx, targetIdx + 1),
@@ -981,10 +993,6 @@
 
                 document.getElementById('modalLoader').classList.replace('flex', 'hidden');
                 document.getElementById('modalContent').classList.replace('hidden', 'flex');
-            } catch(e) {
-                document.getElementById('modalLoader').classList.replace('flex', 'hidden');
-                closeDetailModal();
-                showToast("Gagal memuat histori material.", "error");
             }
         }
 
@@ -999,7 +1007,6 @@
         }
 
         function renderDetailModal(data, matCode) {
-            // Render Chart.js
             const ctx = document.getElementById('detailVarianceChart').getContext('2d');
             if(detailChart) detailChart.destroy();
             
@@ -1054,7 +1061,6 @@
                 }
             });
 
-            // Render History Table
             const tbody = document.getElementById('modalTableBody');
             tbody.innerHTML = '';
             
@@ -1084,12 +1090,9 @@
             }
         }
 
-        // Quick Preset Filler
         function applyQuickPreset(text) {
-            // Find all note inputs in modal
             const inputs = document.querySelectorAll('[id^="mod_nt_"]');
             if (inputs.length > 0) {
-                // Apply to the most recent week input (top row)
                 const firstInput = inputs[0];
                 firstInput.value = text;
                 firstInput.focus();
@@ -1106,17 +1109,18 @@
             btn.disabled = true;
 
             try {
+                // Post save data to API
                 const res = await callAPI('saveMaterialNote', {
                     plant: currentSelectedPlant, 
                     matCode: matCode, 
                     absoluteIdx: absoluteIdx, 
                     note: inp.value.trim()
-                }).catch(() => { return {success: true} });
+                });
                 
-                if(res.success) {
+                if(res && res.success) {
                     btn.innerHTML = '<i class="fas fa-check text-xs"></i>'; 
                     btn.className = btn.className.replace('bg-slate-900', 'bg-emerald-500');
-                    showToast('Catatan WOR tersimpan ke Database', 'success');
+                    showToast('Catatan WOR tersimpan ke Spreadsheet', 'success');
                     
                     setTimeout(() => { 
                         btn.innerHTML = origHTML; 
@@ -1124,22 +1128,21 @@
                         btn.disabled = false; 
                     }, 2000);
                 } else {
-                    throw new Error();
+                    throw new Error(res.message || "Unknown Error");
                 }
             } catch(e) { 
-                showToast("Gagal menyimpan catatan.", "error"); 
+                console.warn(e);
+                showToast("Gagal menyimpan catatan ke server.", "error"); 
                 btn.innerHTML = origHTML; 
                 btn.disabled = false; 
             }
         }
 
-        // Export Data Dropdown Menu
         function toggleExportMenu() {
             const menu = document.getElementById('exportMenu');
             menu.classList.toggle('hidden');
         }
 
-        // Close menu on outside click
         window.addEventListener('click', (e) => {
             const menu = document.getElementById('exportMenu');
             if (menu && !menu.contains(e.target) && !e.target.closest('button[onclick="toggleExportMenu()"]')) {
@@ -1147,7 +1150,6 @@
             }
         });
 
-        // Export to CSV
         function exportToCSV() {
             toggleExportMenu();
             if (!allWeeklyData.length) {
@@ -1173,7 +1175,6 @@
             showToast("File CSV berhasil diunduh!", "success");
         }
 
-        // WhatsApp Report Generator
         function openWhatsAppReportModal() {
             toggleExportMenu();
             if (!allWeeklyData.length) {
@@ -1221,7 +1222,6 @@
             closeWaModal();
         }
 
-        // PWA Manifest and Service Worker Config
         window.addEventListener('load', () => {
             const manifestData = {
                 "name": "VarianceGwip Pro",
