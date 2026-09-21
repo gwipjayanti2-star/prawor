@@ -1,8 +1,8 @@
-const CACHE_NAME = 'variance-pro-cache-v1';
+const CACHE_NAME = 'variance-pro-cache-v2';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/manifest.json'
+    './',
+    './index.html',
+    './manifest.json'
 ];
 
 // Event Install: Menyimpan aset statis ke dalam cache
