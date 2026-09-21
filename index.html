@@ -140,6 +140,11 @@
                 <button type="submit" id="btnLogin" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold py-3.5 rounded-xl transition duration-300 flex justify-center items-center gap-2 mt-6 shadow-lg shadow-blue-600/30 text-sm active:scale-[0.99]">
                     <span>Masuk ke Dashboard Smart</span><i class="fas fa-arrow-right text-xs"></i>
                 </button>
+
+                <!-- Tombol Install PWA di Halaman Login -->
+                <button type="button" id="btnInstallApp" onclick="installPWA()" class="hidden w-full bg-slate-800/80 hover:bg-slate-700 text-cyan-400 border border-cyan-500/30 py-3 rounded-xl transition duration-300 flex justify-center items-center gap-2 mt-3 text-xs font-bold">
+                    <i class="fas fa-download"></i><span>Install Aplikasi (Android/PC)</span>
+                </button>
             </form>
             
             <div class="mt-6 text-center border-t border-slate-800 pt-4">
@@ -156,16 +161,12 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-base sm:text-lg font-black text-white tracking-tight">Variance<span class="text-cyan-400">Gwip</span></h1>
-                        <span class="text-[10px] bg-blue-500/20 text-blue-300 font-bold px-2 py-0.5 rounded-full border border-blue-500/30">PRO</span>
-                    </div>
-                    <p class="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
-                        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 pulse-dot"></span> Realtime Insight
-                    </p>
-                </div>
-            </div>
+                <!-- Tombol Install PWA di Halaman Dashboard -->
+                <button id="btnInstallDashboard" onclick="installPWA()" class="hidden text-cyan-400 hover:text-cyan-300 transition px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-xs font-semibold border border-cyan-500/30 flex items-center gap-2">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span class="hidden sm:inline">Install App</span>
+                </button>
 
-            <div class="flex items-center gap-2">
                 <div class="relative inline-block text-left">
                     <button onclick="toggleExportMenu()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-2 transition">
                         <i class="fas fa-download text-cyan-400"></i>
@@ -1196,6 +1197,46 @@
             document.execCommand('copy');
             showToast("Disalin ke Clipboard!", "success");
             closeWaModal();
+        }
+
+        // PWA Install Logic
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Mencegah Chrome Android menampilkan prompt otomatis dari bawah
+            e.preventDefault();
+            // Simpan event untuk dipicu nanti
+            deferredPrompt = e;
+            
+            // Tampilkan tombol Install milik kita sendiri
+            const btnLogin = document.getElementById('btnInstallApp');
+            const btnDash = document.getElementById('btnInstallDashboard');
+            if (btnLogin) btnLogin.classList.remove('hidden');
+            if (btnDash) btnDash.classList.remove('hidden');
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                // Tampilkan prompt instalasi bawaan browser
+                deferredPrompt.prompt();
+                
+                // Tunggu respon user
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('User menerima instalasi PWA');
+                } else {
+                    console.log('User menolak instalasi PWA');
+                }
+                
+                // Reset event
+                deferredPrompt = null;
+                
+                // Sembunyikan tombol setelah diklik
+                const btnLogin = document.getElementById('btnInstallApp');
+                const btnDash = document.getElementById('btnInstallDashboard');
+                if (btnLogin) btnLogin.classList.add('hidden');
+                if (btnDash) btnDash.classList.add('hidden');
+            }
         }
 
         // Daftarkan Service Worker untuk kapabilitas PWA dan Install App
