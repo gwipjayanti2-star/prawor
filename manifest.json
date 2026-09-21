@@ -1,0 +1,21 @@
+{
+"name": "Variance GWIP",
+"short_name": "VarianceGWIP",
+"description": "Aplikasi Monitoring Variance",
+"start_url": "./index.html",
+"display": "standalone",
+"background_color": "#ffffff",
+"theme_color": "#1e3a8a",
+"icons": [
+{
+"src": "https://www.image2url.com/r2/default/files/1788936510369-c0ffe90d-a6fe-4927-8de2-0b3aecf23b58.png",
+"sizes": "192x192",
+"type": "image/png"
+},
+{
+"src": "https://www.image2url.com/r2/default/files/1788936510369-c0ffe90d-a6fe-4927-8de2-0b3aecf23b58.png",
+"sizes": "512x512",
+"type": "image/png"
+}
+]
+}
