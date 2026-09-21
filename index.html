@@ -33,8 +33,9 @@
             }
         }
     </script>
+    
     <style>
-        @import ('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         body { 
             font-family: 'Inter', sans-serif; 
@@ -81,7 +82,6 @@
         @keyframes fadeInModal { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
         @keyframes fadeOutModal { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.97); } }
 
-        /* Custom Pulse Indicator */
         .pulse-dot {
             box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
             animation: pulse-green 2s infinite;
@@ -95,12 +95,10 @@
 </head>
 <body class="h-full flex flex-col overflow-hidden selection:bg-blue-500 selection:text-white">
 
-    <!-- Toast Notification Container -->
     <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[120] flex flex-col gap-2 w-full max-w-sm px-4 pointer-events-none"></div>
 
     <!-- Login View -->
     <div id="loginView" class="flex items-center justify-center h-full w-full absolute inset-0 z-50 bg-slate-900 overflow-hidden">
-        <!-- Glow Orbs Background -->
         <div class="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-blue-600/30 rounded-full mix-blend-screen filter blur-[120px]"></div>
         <div class="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-cyan-500/20 rounded-full mix-blend-screen filter blur-[120px]"></div>
 
@@ -149,33 +147,29 @@
         </div>
     </div>
 
-    <!-- Main Dashboard View -->
     <div id="dashboardView" class="hidden flex flex-col h-screen w-full relative">
-        <!-- Top Navbar -->
         <nav class="bg-slate-900 border-b border-slate-800 px-4 md:px-6 py-3 flex justify-between items-center shrink-0 z-30 shadow-lg">
             <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-tr from-blue-600 to-cyan-400 text-white p-2.5 rounded-xl shadow-md shadow-blue-500/20">
+                <div class="bg-gradient-to-tr from-blue-600 to-cyan-400 text-white p-2.5 rounded-xl shadow-md shadow-blue-500/20 hidden sm:block">
                     <i class="fas fa-boxes-stacked text-base"></i>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <h1 class="text-lg font-black text-white tracking-tight">Variance<span class="text-cyan-400">Gwip</span></h1>
+                        <h1 class="text-base sm:text-lg font-black text-white tracking-tight">Variance<span class="text-cyan-400">Gwip</span></h1>
                         <span class="text-[10px] bg-blue-500/20 text-blue-300 font-bold px-2 py-0.5 rounded-full border border-blue-500/30">PRO</span>
                     </div>
-                    <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></span> Realtime Material Intelligence
+                    <p class="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 pulse-dot"></span> Realtime Insight
                     </p>
                 </div>
             </div>
 
-            <!-- Navbar Actions -->
             <div class="flex items-center gap-2">
-                <!-- Quick Export Button -->
                 <div class="relative inline-block text-left">
                     <button onclick="toggleExportMenu()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-2 transition">
                         <i class="fas fa-download text-cyan-400"></i>
                         <span class="hidden sm:inline">Ekspor Data</span>
-                        <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-400 sm:hidden"></i>
                     </button>
                     
                     <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-slate-800 rounded-xl shadow-xl border border-slate-700 py-1.5 z-50 text-xs">
@@ -195,36 +189,33 @@
             </div>
         </nav>
 
-        <!-- Content Area -->
         <main class="flex-1 overflow-y-auto p-3 md:p-6 bg-slate-100/70 relative z-10 space-y-4">
             
-            <!-- Filter Toolbar Card -->
             <div class="glass-panel rounded-2xl p-4 md:p-5 shadow-sm border border-slate-200/80">
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-100"><i class="fas fa-sliders-h text-lg"></i></div>
+                        <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 hidden sm:block"><i class="fas fa-sliders-h text-lg"></i></div>
                         <div>
-                            <h3 class="text-sm font-bold text-slate-900">Parameter Laporan & Filter Smart</h3>
-                            <p class="text-xs text-slate-500">Pilih Plant dan Minggu target untuk melakukan analisis otomatis</p>
+                            <h3 class="text-sm font-bold text-slate-900">Parameter Laporan</h3>
+                            <p class="text-[11px] sm:text-xs text-slate-500">Pilih Plant & Minggu target untuk analisis otomatis</p>
                         </div>
                     </div>
                     
-                    <!-- Filters Grid -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
-                        <div class="w-full">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Pilih Plant</label>
-                            <select id="plantSelect" onchange="loadWeeklyData()" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-xs font-semibold shadow-sm">
-                                <option value="">-- Pilih Plant --</option>
-                                <option value="1112">Plant 1112 (Stage 1)</option>
-                                <option value="1113">Plant 1113 (Stage 2)</option>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 w-full lg:w-auto">
+                        <div class="w-full col-span-1">
+                            <label class="block text-[9px] sm:text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Plant</label>
+                            <select id="plantSelect" onchange="loadWeeklyData()" class="w-full px-2 sm:px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none text-[11px] sm:text-xs font-semibold shadow-sm">
+                                <option value="">-- Plant --</option>
+                                <option value="1112">1112 (S1)</option>
+                                <option value="1113">1113 (S2)</option>
                             </select>
                         </div>
-                        <div class="w-full">
-                            <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Target Minggu</label>
-                            <select id="targetWeekSelect" onchange="loadWeeklyData()" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-xs font-semibold shadow-sm"></select>
+                        <div class="w-full col-span-1">
+                            <label class="block text-[9px] sm:text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Minggu</label>
+                            <select id="targetWeekSelect" onchange="loadWeeklyData()" class="w-full px-2 sm:px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none text-[11px] sm:text-xs font-semibold shadow-sm"></select>
                         </div>
-                        <div class="w-full flex items-end">
-                            <button onclick="loadWeeklyData()" id="btnRefreshWeekly" class="w-full px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-md flex items-center justify-center gap-2 transition text-xs font-bold active:scale-[0.98]">
+                        <div class="w-full col-span-2 sm:col-span-1 flex items-end">
+                            <button onclick="loadWeeklyData()" id="btnRefreshWeekly" class="w-full px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-md flex items-center justify-center gap-2 transition text-[11px] sm:text-xs font-bold active:scale-[0.98]">
                                 <i class="fas fa-sync-alt" id="refreshIcon"></i> Muat Data
                             </button>
                         </div>
@@ -235,8 +226,7 @@
             <!-- Loader State -->
             <div id="weeklyDataLoader" class="hidden flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
                 <div class="loader-spinner mb-4 border-t-blue-600"></div>
-                <p class="text-slate-700 text-sm font-semibold animate-pulse">Menarik & menganalisis seluruh data material...</p>
-                <p class="text-slate-400 text-xs mt-1">Mengambil dari sistem spreadsheet secara realtime</p>
+                <p class="text-slate-700 text-sm font-semibold animate-pulse">Menarik data material...</p>
             </div>
 
             <!-- Empty State -->
@@ -245,157 +235,108 @@
                     <i class="fas fa-chart-line text-2xl"></i>
                 </div>
                 <h3 class="text-base font-bold text-slate-800">Siap Menganalisis Material</h3>
-                <p class="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">Silakan pilih lokasi **Plant** dan **Target Minggu** pada filter di atas untuk memulai monitoring selisih material.</p>
+                <p class="text-xs text-slate-500 mt-1 max-w-md leading-relaxed">Silakan pilih lokasi **Plant** dan **Target Minggu** pada filter di atas.</p>
             </div>
 
-            <!-- Active Data Container -->
             <div id="weeklyDataContainer" class="hidden flex-col gap-4">
                 
-                <!-- Smart Executive Narrative Insights Banner -->
                 <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-4 md:p-5 text-white shadow-lg relative overflow-hidden border border-slate-800">
-                    <div class="absolute right-[-20px] bottom-[-20px] opacity-10 text-cyan-400 text-9xl pointer-events-none">
-                        <i class="fas fa-brain"></i>
-                    </div>
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
                         <div class="space-y-1">
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                                <i class="fas fa-sparkles text-cyan-400"></i> Smart Executive Insight
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                                <i class="fas fa-sparkles text-cyan-400"></i> Smart Insight
                             </div>
-                            <h2 class="text-base font-extrabold text-white tracking-tight" id="insightTitle">Analisis Ringkasan Variance</h2>
-                            <p class="text-xs text-slate-300 leading-relaxed max-w-3xl" id="insightBody">Memuat analisis data...</p>
+                            <h2 class="text-sm sm:text-base font-extrabold text-white tracking-tight" id="insightTitle">Analisis Ringkasan</h2>
+                            <p class="text-[11px] sm:text-xs text-slate-300 leading-relaxed max-w-3xl" id="insightBody">Memuat analisis data...</p>
                         </div>
-                        <div class="shrink-0 bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 text-center min-w-[140px]">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Akurasi Stok Material</p>
-                            <p class="text-xl font-extrabold text-emerald-400 mt-0.5" id="insightAccuracy">0%</p>
-                            <div class="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
-                                <div id="insightAccuracyBar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
+                        <div class="shrink-0 bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 text-center flex flex-row md:flex-col justify-between md:justify-center items-center md:min-w-[140px]">
+                            <p class="text-[9px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider">Akurasi Stok</p>
+                            <div class="flex flex-col items-end md:items-center w-3/5 md:w-full">
+                                <p class="text-lg sm:text-xl font-extrabold text-emerald-400" id="insightAccuracy">0%</p>
+                                <div class="w-full bg-slate-700 h-1 sm:h-1.5 rounded-full md:mt-2 overflow-hidden">
+                                    <div id="insightAccuracyBar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- KPI Interactive Cards -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 md:gap-4">
                     <!-- Total Items -->
-                    <div onclick="setFilterStatus('ALL')" class="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-blue-500">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Material</p>
-                                <h3 id="kpiTotalMat" class="text-2xl font-black text-slate-900 mt-1">0</h3>
-                            </div>
-                            <div class="p-2 bg-blue-50 text-blue-600 rounded-xl group-hover:scale-110 transition"><i class="fas fa-boxes"></i></div>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
-                            <i class="fas fa-info-circle text-blue-500"></i> Klik untuk tampilkan semua
-                        </p>
+                    <div onclick="setFilterStatus('ALL')" class="cursor-pointer bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-blue-500">
+                        <p class="text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Material</p>
+                        <h3 id="kpiTotalMat" class="text-xl sm:text-2xl font-black text-slate-900 mt-1">0</h3>
                     </div>
-
                     <!-- Minus Items -->
-                    <div onclick="setFilterStatus('MINUS')" class="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-rose-500">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Material Minus</p>
-                                <h3 id="kpiTotalMinus" class="text-2xl font-black text-rose-600 mt-1">0</h3>
-                            </div>
-                            <div class="p-2 bg-rose-50 text-rose-600 rounded-xl group-hover:scale-110 transition"><i class="fas fa-arrow-down-long"></i></div>
-                        </div>
-                        <p class="text-[10px] text-rose-500 font-semibold mt-2 flex items-center gap-1">
-                            <i class="fas fa-filter"></i> Klik untuk filter Minus
-                        </p>
+                    <div onclick="setFilterStatus('MINUS')" class="cursor-pointer bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-rose-500">
+                        <p class="text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-wider">Material Minus</p>
+                        <h3 id="kpiTotalMinus" class="text-xl sm:text-2xl font-black text-rose-600 mt-1">0</h3>
                     </div>
-
                     <!-- Surplus Items -->
-                    <div onclick="setFilterStatus('SURPLUS')" class="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-emerald-500">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Material Surplus</p>
-                                <h3 id="kpiTotalSurplus" class="text-2xl font-black text-emerald-600 mt-1">0</h3>
-                            </div>
-                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl group-hover:scale-110 transition"><i class="fas fa-arrow-up-long"></i></div>
-                        </div>
-                        <p class="text-[10px] text-emerald-600 font-semibold mt-2 flex items-center gap-1">
-                            <i class="fas fa-filter"></i> Klik untuk filter Surplus
-                        </p>
+                    <div onclick="setFilterStatus('SURPLUS')" class="cursor-pointer bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-emerald-500">
+                        <p class="text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-wider">Material Surplus</p>
+                        <h3 id="kpiTotalSurplus" class="text-xl sm:text-2xl font-black text-emerald-600 mt-1">0</h3>
                     </div>
-
                     <!-- Balanced Items -->
-                    <div onclick="setFilterStatus('SESUAI')" class="cursor-pointer bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-slate-400">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Material Sesuai (0)</p>
-                                <h3 id="kpiTotalSesuai" class="text-2xl font-black text-slate-700 mt-1">0</h3>
-                            </div>
-                            <div class="p-2 bg-slate-100 text-slate-600 rounded-xl group-hover:scale-110 transition"><i class="fas fa-check"></i></div>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
-                            <i class="fas fa-filter"></i> Klik untuk filter Sesuai
-                        </p>
+                    <div onclick="setFilterStatus('SESUAI')" class="cursor-pointer bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-sm hover:shadow-md transition group border-l-4 border-l-slate-400">
+                        <p class="text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-wider">Material Sesuai</p>
+                        <h3 id="kpiTotalSesuai" class="text-xl sm:text-2xl font-black text-slate-700 mt-1">0</h3>
                     </div>
                 </div>
 
-                <!-- Interactive Table & Control Bar -->
-                <div class="bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm flex flex-col">
+                <div class="bg-transparent md:bg-white md:rounded-2xl md:overflow-hidden md:border md:border-slate-200/80 md:shadow-sm flex flex-col">
                     
-                    <!-- Table Search & Filter Toolbar -->
-                    <div class="p-4 border-b border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <!-- Search Box -->
+                    <div class="p-3 md:p-4 border-b border-slate-200 bg-white md:bg-slate-50/70 rounded-xl md:rounded-none shadow-sm md:shadow-none flex flex-col sm:flex-row justify-between items-center gap-3 mb-3 md:mb-0">
                         <div class="relative w-full sm:w-72">
                             <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Cari nama atau kode material..." class="w-full pl-9 pr-8 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition font-medium">
+                            <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Cari nama atau kode..." class="w-full pl-9 pr-8 py-2 bg-slate-50 md:bg-white border border-slate-300 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 outline-none transition font-medium">
                             <button id="btnClearSearch" onclick="clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
                                 <i class="fas fa-times-circle"></i>
                             </button>
                         </div>
 
-                        <!-- Status Filter Pills & Quick Sort -->
                         <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-                            <!-- Status Badges Tabs -->
-                            <div class="inline-flex p-1 bg-slate-200/60 rounded-xl text-[11px] font-bold">
-                                <button id="btnTabAll" onclick="setFilterStatus('ALL')" class="px-3 py-1 rounded-lg transition bg-white text-slate-900 shadow-sm">Semua</button>
-                                <button id="btnTabMinus" onclick="setFilterStatus('MINUS')" class="px-3 py-1 rounded-lg transition text-slate-600 hover:text-slate-900">Minus</button>
-                                <button id="btnTabSurplus" onclick="setFilterStatus('SURPLUS')" class="px-3 py-1 rounded-lg transition text-slate-600 hover:text-slate-900">Surplus</button>
-                                <button id="btnTabSesuai" onclick="setFilterStatus('SESUAI')" class="px-3 py-1 rounded-lg transition text-slate-600 hover:text-slate-900">Sesuai</button>
+                            <div class="inline-flex p-1 bg-slate-200/60 rounded-xl text-[10px] sm:text-[11px] font-bold w-full sm:w-auto justify-between">
+                                <button id="btnTabAll" onclick="setFilterStatus('ALL')" class="px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-lg transition bg-white text-slate-900 shadow-sm flex-1 sm:flex-none">Semua</button>
+                                <button id="btnTabMinus" onclick="setFilterStatus('MINUS')" class="px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-lg transition text-slate-600 flex-1 sm:flex-none">Minus</button>
+                                <button id="btnTabSurplus" onclick="setFilterStatus('SURPLUS')" class="px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-lg transition text-slate-600 flex-1 sm:flex-none">Surplus</button>
+                                <button id="btnTabSesuai" onclick="setFilterStatus('SESUAI')" class="px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-lg transition text-slate-600 flex-1 sm:flex-none">Sesuai</button>
                             </div>
 
-                            <!-- Sorting Select -->
-                            <select id="sortSelect" onchange="handleSortChange()" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500">
+                            <select id="sortSelect" onchange="handleSortChange()" class="px-2 sm:px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-[11px] sm:text-xs font-semibold text-slate-700 outline-none w-full sm:w-auto mt-1 sm:mt-0">
                                 <option value="MINUS_DESC">Minus Terbesar</option>
                                 <option value="SURPLUS_DESC">Surplus Terbesar</option>
                                 <option value="PERCENT_DESC">Varian % Terbesar</option>
-                                <option value="CODE_ASC">Kode Material (A-Z)</option>
-                                <option value="NAME_ASC">Nama Material (A-Z)</option>
+                                <option value="NAME_ASC">Nama (A-Z)</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- Table Info Subheader -->
-                    <div class="px-4 py-2.5 bg-slate-100/50 border-b border-slate-200/60 flex justify-between items-center text-xs text-slate-500">
+                    <div class="px-2 md:px-4 py-2 bg-transparent md:bg-slate-100/50 md:border-b md:border-slate-200/60 flex justify-between items-center text-[10px] sm:text-xs text-slate-500 mb-1 md:mb-0">
                         <span id="tableCountSummary" class="font-medium">Menampilkan 0 material</span>
-                        <span id="lblTableWeek" class="font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">Week -</span>
+                        <span id="lblTableWeek" class="font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100 hidden sm:inline-block">Week -</span>
                     </div>
 
-                    <!-- Main Data Table -->
-                    <div class="overflow-x-auto w-full">
-                        <table class="w-full text-left border-collapse min-w-[760px]">
-                            <thead>
+                    <div class="w-full">
+                        <table class="w-full text-left border-collapse block md:table md:min-w-[760px]">
+                            <thead class="hidden md:table-header-group">
                                 <tr class="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wider border-b border-slate-200">
                                     <th class="px-4 py-3 font-bold w-12 text-center">No</th>
-                                    <th class="px-4 py-3 font-bold w-28">Kode</th>
+                                    <th class="px-4 py-3 font-bold w-24">Kode</th>
                                     <th class="px-4 py-3 font-bold">Nama Material</th>
-                                    <th class="px-4 py-3 font-bold text-right w-44">Qty Selisih & Visual</th>
-                                    <th class="px-4 py-3 font-bold text-right w-28">Varian (%)</th>
-                                    <th class="px-4 py-3 font-bold text-center w-28">Status</th>
+                                    <th class="px-4 py-3 font-bold text-right w-40">Qty Selisih & Visual</th>
+                                    <th class="px-4 py-3 font-bold text-right w-24">Varian (%)</th>
+                                    <th class="px-4 py-3 font-bold text-center w-24">Status</th>
                                     <th class="px-4 py-3 font-bold text-center w-28">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="weeklyTableBody" class="divide-y divide-slate-100 text-xs text-slate-700 bg-white">
-                                <!-- Table rows injected dynamically -->
+                            <tbody id="weeklyTableBody" class="block md:table-row-group text-xs text-slate-700 bg-transparent md:bg-white space-y-3 md:space-y-0">
+                                <!-- Baris tabel akan dimuat via JavaScript -->
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- No Search Results Found -->
-                    <div id="noSearchState" class="hidden flex-col items-center justify-center py-12 text-center px-4">
+                    <div id="noSearchState" class="hidden flex-col items-center justify-center py-12 text-center px-4 bg-white rounded-xl md:rounded-none mt-2 md:mt-0">
                         <i class="fas fa-search-minus text-3xl text-slate-300 mb-2"></i>
                         <p class="text-xs font-semibold text-slate-600">Tidak ada material yang sesuai kriteria pencarian.</p>
                         <button onclick="clearSearch()" class="mt-2 text-xs font-bold text-blue-600 hover:underline">Reset Pencarian</button>
@@ -405,125 +346,106 @@
         </main>
     </div>
 
-    <!-- Detail Analytics & WOR Notes Modal -->
-    <div id="detailModal" class="hidden fixed inset-0 z-[100] bg-slate-900/70 backdrop-blur-md flex justify-center items-end sm:items-center p-0 sm:p-4">
-        <div class="bg-white w-full sm:max-w-4xl max-h-[92vh] sm:rounded-3xl rounded-t-3xl flex flex-col relative shadow-2xl overflow-hidden transform transition-all border border-slate-200">
+    <div id="detailModal" class="hidden fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-sm flex justify-center items-end sm:items-center p-0 sm:p-4">
+        <div class="bg-slate-50 sm:bg-white w-full sm:max-w-4xl max-h-[92vh] h-[92vh] sm:h-auto sm:rounded-3xl rounded-t-3xl flex flex-col relative shadow-2xl overflow-hidden transform transition-all border border-slate-200">
             
-            <!-- Modal Header -->
-            <div class="px-5 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-900 text-white">
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-blue-500/20 text-cyan-400 rounded-xl border border-blue-500/30"><i class="fas fa-chart-line text-lg"></i></div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-base font-extrabold text-white tracking-tight leading-tight" id="modalMatName">Nama Material</h3>
+            <div class="px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-800 bg-slate-900 text-white shrink-0 sticky top-0 z-20">
+                <div class="flex justify-between items-start sm:items-center">
+                    <div class="flex items-start sm:items-center gap-3">
+                        <div class="p-2 bg-blue-500/20 text-cyan-400 rounded-xl border border-blue-500/30 mt-1 sm:mt-0 hidden sm:block"><i class="fas fa-chart-line"></i></div>
+                        <div>
+                            <h3 class="text-sm sm:text-base font-extrabold text-white tracking-tight leading-tight pr-4" id="modalMatName">Nama Material</h3>
+                            <p class="text-[10px] sm:text-xs text-slate-400 font-mono mt-0.5 flex items-center gap-2"><span id="modalMatCode">KODE123</span> <span class="bg-slate-800 px-1.5 rounded text-slate-300">Detail Info</span></p>
                         </div>
-                        <p class="text-xs text-slate-400 font-mono mt-0.5" id="modalMatCode">KODE123</p>
                     </div>
+                    <button onclick="closeDetailModal()" class="w-7 h-7 sm:w-8 sm:h-8 flex shrink-0 items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-rose-500 hover:text-white transition">
+                        <i class="fas fa-times text-xs sm:text-sm"></i>
+                    </button>
                 </div>
-                <button onclick="closeDetailModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-rose-500 hover:text-white transition">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
             </div>
 
-            <!-- Modal Loader -->
-            <div id="modalLoader" class="flex flex-col items-center justify-center py-20 flex-1">
+            <div id="modalLoader" class="flex flex-col items-center justify-center py-20 flex-1 bg-white">
                 <div class="loader-spinner mb-3 border-t-blue-600"></div>
-                <p class="text-xs text-slate-500 font-bold">Mengambil riwayat tren 5 minggu & catatan WOR...</p>
+                <p class="text-xs text-slate-500 font-bold">Mengambil riwayat & catatan...</p>
             </div>
 
-            <!-- Modal Body Content -->
-            <div id="modalContent" class="hidden flex-col flex-1 overflow-y-auto bg-slate-50/50">
-                <div class="p-4 sm:p-6 space-y-5">
+            <div id="modalContent" class="hidden flex-col flex-1 overflow-y-auto">
+                <div class="p-3 sm:p-6 space-y-4 sm:space-y-5">
                     
-                    <!-- Trend Chart Box -->
-                    <div class="border border-slate-200/80 rounded-2xl p-4 bg-white shadow-sm">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fas fa-chart-bar text-blue-600"></i> Tren Selisih 5 Minggu Terakhir
-                            </h4>
-                            <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-md font-medium">Dual Axis: Qty & Varian Line (%)</span>
-                        </div>
-                        <div class="w-full h-44 sm:h-56 relative">
+                    <div class="border border-slate-200/80 rounded-2xl p-3 sm:p-4 bg-white shadow-sm">
+                        <h4 class="text-[11px] sm:text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-2 sm:mb-3">
+                            <i class="fas fa-chart-bar text-blue-600"></i> Tren 5 Minggu Terakhir
+                        </h4>
+                        <div class="w-full h-40 sm:h-56 relative">
                             <canvas id="detailVarianceChart"></canvas>
                         </div>
                     </div>
 
-                    <!-- Quick Preset Notes Bar -->
-                    <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-3.5">
-                        <p class="text-[11px] font-bold text-blue-900 mb-2 flex items-center gap-1.5">
-                            <i class="fas fa-bolt text-amber-500"></i> Template Catatan Cepat (Satu Klik):
+                    <div class="bg-blue-50/70 border border-blue-100 rounded-2xl p-3">
+                        <p class="text-[10px] sm:text-[11px] font-bold text-blue-900 mb-2 flex items-center gap-1.5">
+                            <i class="fas fa-bolt text-amber-500"></i> Template Catatan WOR:
                         </p>
                         <div class="flex flex-wrap gap-1.5">
-                            <button onclick="applyQuickPreset('Penyusutan Proses Alami')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Penyusutan Proses</button>
-                            <button onclick="applyQuickPreset('Salah Input SAP / System Lag')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Salah Input SAP</button>
-                            <button onclick="applyQuickPreset('Toleransi Timbangan Multi-Skala')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Selisih Timbang</button>
-                            <button onclick="applyQuickPreset('Kemasan Rusak / Ceceran Work Area')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Ceceran / Spillage</button>
-                            <button onclick="applyQuickPreset('Under Delivery dari Supplier')" class="px-2.5 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-lg border border-blue-200 shadow-sm transition">Under Delivery</button>
+                            <button onclick="applyQuickPreset('Penyusutan Proses Alami')" class="px-2 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[10px] font-semibold rounded-lg border border-blue-200 transition">Penyusutan</button>
+                            <button onclick="applyQuickPreset('Salah Input SAP')" class="px-2 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[10px] font-semibold rounded-lg border border-blue-200 transition">Salah Input</button>
+                            <button onclick="applyQuickPreset('Toleransi Timbangan')" class="px-2 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[10px] font-semibold rounded-lg border border-blue-200 transition">Selisih Timbang</button>
+                            <button onclick="applyQuickPreset('Ceceran Work Area')" class="px-2 py-1 bg-white hover:bg-blue-600 hover:text-white text-slate-700 text-[10px] font-semibold rounded-lg border border-blue-200 transition">Ceceran</button>
                         </div>
                     </div>
 
-                    <!-- History Table & Live Notes Entry -->
-                    <div class="border border-slate-200/80 rounded-2xl overflow-hidden bg-white shadow-sm">
-                        <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-                            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <i class="fas fa-history text-blue-600"></i> Riwayat WOR & Catatan Database
+                    <div class="bg-transparent sm:bg-white sm:border sm:border-slate-200/80 sm:rounded-2xl overflow-hidden sm:shadow-sm">
+                        <div class="px-2 sm:px-4 py-2 sm:py-3 sm:border-b sm:border-slate-200 bg-transparent sm:bg-slate-50 flex items-center justify-between mb-1 sm:mb-0">
+                            <h4 class="text-[11px] sm:text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-history text-blue-600"></i> Riwayat Database
                             </h4>
-                            <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                <i class="fas fa-sync-alt text-[9px]"></i> Auto-Sync
-                            </span>
                         </div>
-                        <div class="overflow-x-auto w-full">
-                            <table class="w-full text-left border-collapse min-w-[620px]">
-                                <thead>
+                        <div class="w-full pb-4 sm:pb-0">
+                            <table class="w-full text-left border-collapse block sm:table sm:min-w-[620px]">
+                                <thead class="hidden sm:table-header-group">
                                     <tr class="bg-white text-slate-500 text-[10px] uppercase tracking-wider border-b border-slate-200">
                                         <th class="px-4 py-2.5 font-bold w-24">Minggu</th>
                                         <th class="px-4 py-2.5 font-bold text-right w-28">Selisih</th>
                                         <th class="px-4 py-2.5 font-bold text-right w-24">Varian</th>
-                                        <th class="px-4 py-2.5 font-bold text-left">Catatan & Analisis Penyebab</th>
+                                        <th class="px-4 py-2.5 font-bold text-left">Catatan</th>
                                     </tr>
                                 </thead>
-                                <tbody id="modalTableBody" class="divide-y divide-slate-100 text-xs text-slate-700">
-                                    <!-- History Rows Injected -->
+                                <tbody id="modalTableBody" class="block sm:table-row-group text-xs text-slate-700 space-y-3 sm:space-y-0">
+                                    <!-- Riwayat dimasukkan via JS -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- WhatsApp Report Modal Preview -->
     <div id="waReportModal" class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm flex justify-center items-center p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl p-5 shadow-2xl space-y-4 border border-slate-200">
             <div class="flex justify-between items-center border-b border-slate-200 pb-3">
                 <div class="flex items-center gap-2 text-emerald-600">
                     <i class="fab fa-whatsapp text-xl"></i>
-                    <h3 class="text-base font-extrabold text-slate-900">Format Laporan WhatsApp</h3>
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Format Laporan WhatsApp</h3>
                 </div>
                 <button onclick="closeWaModal()" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
             </div>
             
-            <p class="text-xs text-slate-500">Teks ringkasan telah diformat khusus. Klik tombol di bawah untuk menyalin dan kirim ke grup WhatsApp.</p>
+            <p class="text-[11px] sm:text-xs text-slate-500">Teks ringkasan telah diformat khusus. Klik tombol di bawah untuk menyalin.</p>
             
-            <textarea id="waReportTextarea" readonly class="w-full h-48 bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-mono text-slate-800 outline-none resize-none focus:ring-2 focus:ring-emerald-500"></textarea>
+            <textarea id="waReportTextarea" readonly class="w-full h-40 sm:h-48 bg-slate-50 border border-slate-200 rounded-xl p-3 text-[11px] sm:text-xs font-mono text-slate-800 outline-none resize-none focus:ring-2 focus:ring-emerald-500"></textarea>
             
             <div class="flex gap-2 justify-end">
                 <button onclick="closeWaModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Tutup</button>
                 <button onclick="copyWaReportToClipboard()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-md">
-                    <i class="fas fa-copy"></i> Salin Teks
+                    <i class="fas fa-copy"></i> Salin
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Endpoint Google Apps Script
         const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxYYI6aW6iGgaYIyZEHFC3sGUrQ_PlOXcx2yZKUZ4xgedArIoQf6oXOOCEhg8HKqNFfUA/exec"; 
         
-        // Application State
         let detailChart = null; 
         let currentSelectedPlant = "";
         let currentSelectedWeek = "";
@@ -559,7 +481,7 @@
                 icon = 'fa-exclamation-circle text-rose-400';
             }
             
-            toast.className = `flex items-center gap-3 w-full px-4 py-3 rounded-2xl shadow-2xl border text-xs font-semibold ${bgClass} toast-enter pointer-events-auto`;
+            toast.className = `flex items-center gap-3 w-full px-4 py-3 rounded-2xl shadow-xl border text-xs font-semibold ${bgClass} toast-enter pointer-events-auto`;
             toast.innerHTML = `<i class="fas ${icon} text-base shrink-0"></i><span class="flex-1">${message}</span>`;
             container.appendChild(toast);
             
@@ -584,14 +506,14 @@
         window.addEventListener('DOMContentLoaded', () => {
             const badge = document.getElementById('apiStatusBadge');
             if (typeof google !== 'undefined' && google.script && google.script.run) {
-                badge.innerHTML = '<i class="fas fa-server text-emerald-400"></i> Mode Native GAS (Online)';
-                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                badge.innerHTML = '<i class="fas fa-server text-emerald-400"></i> GAS Mode';
+                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
             } else if (GAS_API_URL && GAS_API_URL.trim().length > 10) {
-                badge.innerHTML = '<i class="fas fa-wifi text-cyan-400"></i> Terhubung API Cloud Realtime';
-                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
+                badge.innerHTML = '<i class="fas fa-wifi text-cyan-400"></i> Cloud Realtime';
+                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20';
             } else {
-                badge.innerHTML = '<i class="fas fa-eye-slash text-slate-400"></i> Mode Preview Offline';
-                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-800 text-slate-400 border border-slate-700';
+                badge.innerHTML = '<i class="fas fa-eye-slash text-slate-400"></i> Preview Offline';
+                badge.className = 'mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-slate-800 text-slate-400 border border-slate-700';
             }
         });
 
@@ -652,7 +574,7 @@
                     console.warn("API Gagal, melakukan bypass mode admin karena konfigurasi offline");
                     suksesLogin();
                 } else {
-                    tampilkanErrorLogin("Gagal menghubungkan ke server Spreadsheet."); 
+                    tampilkanErrorLogin("Gagal menghubungkan ke server."); 
                 }
             }
 
@@ -660,13 +582,13 @@
                 document.getElementById('loginView').classList.add('hidden'); 
                 document.getElementById('dashboardView').classList.remove('hidden');
                 populateWeekDropdown(); 
-                showToast('Selamat Datang Kembali! Akses Diberikan.', 'success');
+                showToast('Akses Diberikan!', 'success');
             }
 
             function tampilkanErrorLogin(msg) {
                 err.innerText = msg; 
                 err.classList.remove('hidden'); 
-                btn.innerHTML = '<span>Masuk ke Dashboard Smart</span><i class="fas fa-arrow-right text-xs"></i>';
+                btn.innerHTML = '<span>Masuk ke Dashboard</span><i class="fas fa-arrow-right text-xs"></i>';
                 btn.disabled = false;
             }
         }
@@ -712,16 +634,12 @@
                 } else if (apiResponse && Array.isArray(apiResponse.data)) {
                     rawList = apiResponse.data;
                 } else {
-                    throw new Error("Format response API tidak dikenali atau kosong");
+                    throw new Error("Format response API tidak dikenali");
                 }
 
-                if(rawList.length === 0) throw new Error("Data spreadsheet kosong");
+                if(rawList.length === 0) throw new Error("Data kosong");
 
-                // ==============================================================
-                // DATA PARSER SMART (Memperbaiki pembacaan Selisih dan Persentase)
-                // ==============================================================
                 allWeeklyData = rawList.map(m => {
-                    // Helper cerdas yang memprioritaskan urutan kata kunci (Kode > ID)
                     const findKey = (obj, possibleKeys) => {
                         const normalizedKeys = Object.keys(obj).reduce((acc, k) => {
                             acc[k.toLowerCase().replace(/[^a-z0-9]/g, '')] = k;
@@ -729,21 +647,15 @@
                         }, {});
 
                         for (let pk of possibleKeys) {
-                            if (normalizedKeys[pk] !== undefined) {
-                                return obj[normalizedKeys[pk]];
-                            }
+                            if (normalizedKeys[pk] !== undefined) return obj[normalizedKeys[pk]];
                         }
                         return undefined;
                     };
 
-                    // Helper cerdas & aman untuk memperbaiki format angka Excel (menangkal masalah koma desimal)
                     const parseNumberSafe = (val) => {
                         if (val === undefined || val === null || val === '') return 0;
                         if (typeof val === 'number') return val;
-                        
-                        let strVal = String(val).trim();
-                        strVal = strVal.replace(/[^0-9.,\-]/g, '');
-                        
+                        let strVal = String(val).trim().replace(/[^0-9.,\-]/g, '');
                         const lastDot = strVal.lastIndexOf('.');
                         const lastComma = strVal.lastIndexOf(',');
                         
@@ -763,11 +675,10 @@
                         return isNaN(num) ? 0 : num;
                     };
 
-                    // Temukan data menggunakan prioritas nama kolom
-                    let rawKode = findKey(m, ['kodematerial', 'materialcode', 'kode', 'itemcode', 'sku', 'id', 'no']);
-                    let rawNama = findKey(m, ['namamaterial', 'materialname', 'nama', 'deskripsi', 'description']);
-                    let rawSelisih = findKey(m, ['qtyselisih', 'selisihqty', 'varianceqty', 'selisih', 'variance', 'varian', 'qty']);
-                    let rawPersentase = findKey(m, ['varianpersen', 'variancepercent', 'persentase', 'persen', 'percentage', 'perbedaan']);
+                    let rawKode = findKey(m, ['kodematerial', 'materialcode', 'kode', 'itemcode']);
+                    let rawNama = findKey(m, ['namamaterial', 'materialname', 'nama', 'deskripsi']);
+                    let rawSelisih = findKey(m, ['qtyselisih', 'selisihqty', 'selisih', 'variance']);
+                    let rawPersentase = findKey(m, ['varianpersen', 'variancepercent', 'persentase']);
 
                     return {
                         kode: rawKode ? String(rawKode) : '-',
@@ -778,8 +689,7 @@
                 });
 
             } catch (e) {
-                console.warn("Menggunakan Mock Data (API Gagal/Kosong):", e);
-                // Fallback Mock Dataset
+                console.warn("Menggunakan Mock Data (API Gagal):", e);
                 const mockBase = [
                     {kode: 'RM001', nama: 'Flour High Protein 25kg'},
                     {kode: 'RM002', nama: 'Refined Fine Sugar 50kg'},
@@ -801,8 +711,6 @@
                     
                     return { kode: m.kode, nama: m.nama, selisih: mockSelisih, persentase: mockPersen };
                 });
-                
-                showToast("Menampilkan data dummy karena server gagal merespons", "error");
             } finally {
                 applyFiltersAndSort();
                 generateSmartExecutiveInsights();
@@ -835,7 +743,7 @@
             if (topRisk) {
                 narrative += `Material dengan potensi risiko tertinggi adalah **${topRisk.nama} (${topRisk.kode})** dengan selisih **${topRisk.selisih.toLocaleString('id-ID')}** (${topRisk.persentase}%). `;
             }
-            narrative += `Total akumulasi defisit fisik tercatat sebesar **-${totalMinusQty.toLocaleString('id-ID')} unit**. Direkomendasikan melakukan verifikasi WOR pada material terkritis.`;
+            narrative += `Total defisit tercatat sebesar **-${totalMinusQty.toLocaleString('id-ID')} unit**.`;
 
             document.getElementById('insightBody').innerHTML = narrative.replace(/\*\*(.*?)\*\*/g, '<b class="text-white font-bold">$1</b>');
             document.getElementById('insightAccuracy').innerText = `${accuracyRate}%`;
@@ -848,9 +756,9 @@
                 const btn = document.getElementById(`btnTab${st.charAt(0) + st.slice(1).toLowerCase()}`);
                 if (btn) {
                     if (st === status) {
-                        btn.className = "px-3 py-1 rounded-lg transition bg-white text-slate-900 shadow-sm font-extrabold";
+                        btn.className = "px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-lg transition bg-white text-slate-900 shadow-sm font-extrabold flex-1 sm:flex-none";
                     } else {
-                        btn.className = "px-3 py-1 rounded-lg transition text-slate-600 hover:text-slate-900 font-medium";
+                        btn.className = "px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-lg transition text-slate-600 hover:text-slate-900 font-medium flex-1 sm:flex-none";
                     }
                 }
             });
@@ -898,7 +806,6 @@
                 if (currentSortMode === 'MINUS_DESC') return parseFloat(a.selisih) - parseFloat(b.selisih);
                 if (currentSortMode === 'SURPLUS_DESC') return parseFloat(b.selisih) - parseFloat(a.selisih);
                 if (currentSortMode === 'PERCENT_DESC') return Math.abs(parseFloat(b.persentase)) - Math.abs(parseFloat(a.persentase));
-                if (currentSortMode === 'CODE_ASC') return a.kode.localeCompare(b.kode);
                 if (currentSortMode === 'NAME_ASC') return a.nama.localeCompare(b.nama);
                 return 0;
             });
@@ -945,34 +852,63 @@
                 if (s < 0) {
                     textClass = 'text-rose-600';
                     barBg = 'bg-rose-500';
-                    statusBadge = '<span class="px-2.5 py-1 bg-rose-50 text-rose-600 rounded-lg border border-rose-200/80 text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> Minus</span>';
+                    statusBadge = '<span class="px-2 py-0.5 md:px-2.5 md:py-1 bg-rose-50 text-rose-600 rounded-md md:rounded-lg border border-rose-200/80 text-[9px] md:text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-circle text-[5px] md:text-[6px]"></i> Minus</span>';
                 } else if (s > 0) {
                     textClass = 'text-emerald-600';
                     barBg = 'bg-emerald-500';
-                    statusBadge = '<span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-200/80 text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-circle text-[6px]"></i> Surplus</span>';
+                    statusBadge = '<span class="px-2 py-0.5 md:px-2.5 md:py-1 bg-emerald-50 text-emerald-600 rounded-md md:rounded-lg border border-emerald-200/80 text-[9px] md:text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-circle text-[5px] md:text-[6px]"></i> Surplus</span>';
                 } else {
-                    statusBadge = '<span class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg border border-slate-200 text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-check text-[8px]"></i> Sesuai</span>';
+                    statusBadge = '<span class="px-2 py-0.5 md:px-2.5 md:py-1 bg-slate-100 text-slate-500 rounded-md md:rounded-lg border border-slate-200 text-[9px] md:text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-check text-[7px] md:text-[8px]"></i> Sesuai</span>';
                 }
 
+                // Desain responsif: Menjadi Card vertikal di mobile, row tabel di desktop.
+                // Selisih didekatkan di bawah nama pada mode mobile.
                 tbody.innerHTML += `
-                    <tr class="hover:bg-blue-50/40 transition duration-150 border-l-2 ${s < 0 ? 'border-l-rose-500' : s > 0 ? 'border-l-emerald-500' : 'border-l-transparent'}">
-                        <td class="px-4 py-3 text-center text-slate-400 font-semibold">${idx + 1}</td>
-                        <td class="px-4 py-3 font-mono text-blue-600 font-bold">${item.kode}</td>
-                        <td class="px-4 py-3">
-                            <div class="font-bold text-slate-800">${item.nama}</div>
+                    <tr class="flex flex-col md:table-row bg-white border md:border-0 border-slate-200 md:border-b md:border-slate-100 rounded-xl md:rounded-none p-3 md:p-0 shadow-sm md:shadow-none hover:bg-blue-50/40 transition duration-150 border-l-4 md:border-l-2 ${s < 0 ? 'border-l-rose-500' : s > 0 ? 'border-l-emerald-500' : 'border-l-transparent'}">
+                        
+                        <!-- Header Mobile (Kode & Status) -->
+                        <div class="flex justify-between items-center md:hidden mb-2 pb-2 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">#${idx + 1}</span>
+                                <span class="font-mono text-blue-600 font-bold text-[11px]">${item.kode}</span>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+
+                        <!-- Sel Desktop -->
+                        <td class="hidden md:table-cell px-4 py-3 text-center text-slate-400 font-semibold">${idx + 1}</td>
+                        <td class="hidden md:table-cell px-4 py-3 font-mono text-blue-600 font-bold">${item.kode}</td>
+                        
+                        <!-- Nama Material (Kelihatan di semua) -->
+                        <td class="md:px-4 md:py-3 mb-1.5 md:mb-0">
+                            <div class="font-bold text-slate-800 text-[13px] md:text-xs leading-tight">${item.nama}</div>
                         </td>
-                        <td class="px-4 py-3 text-right">
-                            <div class="font-mono font-black ${textClass}">${s.toLocaleString('id-ID')}</div>
+                        
+                        <!-- Selisih Qty (Dikelompokkan rapi di mobile) -->
+                        <td class="md:px-4 md:py-3 md:text-right flex items-center justify-between md:table-cell mb-2 md:mb-0 bg-slate-50 md:bg-transparent px-2.5 py-2 md:p-0 rounded-lg">
+                            <div class="md:hidden flex flex-col gap-0.5">
+                                <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">Selisih Fisik</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Varian %</span>
+                            </div>
+                            <div class="flex flex-col items-end">
+                                <div class="font-mono font-black text-[13px] md:text-xs ${textClass}">${s.toLocaleString('id-ID')}</div>
+                                <div class="md:hidden font-mono font-bold text-[11px] text-slate-500 mt-0.5">${p > 0 ? '+' : ''}${p}%</div>
+                            </div>
+                            <!-- Bar Desktop -->
                             ${s !== 0 ? `
-                            <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden ml-auto max-w-[120px]">
+                            <div class="hidden md:block w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden ml-auto max-w-[120px]">
                                 <div class="${barBg} h-full rounded-full" style="width: ${absWidthPercent}%"></div>
                             </div>` : ''}
                         </td>
-                        <td class="px-4 py-3 text-right font-mono font-semibold text-slate-500">${p > 0 ? '+' : ''}${p}%</td>
-                        <td class="px-4 py-3 text-center">${statusBadge}</td>
-                        <td class="px-4 py-3 text-center">
-                            <button onclick="openDetailModal('${item.kode}', '${item.nama.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition shadow-sm text-[10px] font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 w-full mx-auto">
-                                <i class="fas fa-chart-line text-xs"></i> Detail
+                        
+                        <!-- Sel Desktop Varian & Status -->
+                        <td class="hidden md:table-cell px-4 py-3 text-right font-mono font-semibold text-slate-500">${p > 0 ? '+' : ''}${p}%</td>
+                        <td class="hidden md:table-cell px-4 py-3 text-center">${statusBadge}</td>
+                        
+                        <!-- Aksi -->
+                        <td class="md:px-4 md:py-3 text-center mt-1 md:mt-0 pt-2 md:pt-0 border-t border-slate-100 md:border-0">
+                            <button onclick="openDetailModal('${item.kode}', '${item.nama.replace(/'/g, "\\'")}')" class="px-3 py-2 md:py-1.5 bg-white border border-slate-300 rounded-lg md:rounded-xl text-slate-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition shadow-sm text-[10px] font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 w-full md:w-auto md:mx-auto">
+                                <i class="fas fa-chart-line text-[11px] md:text-xs"></i> <span class="md:hidden">Lihat </span>Detail
                             </button>
                         </td>
                     </tr>
@@ -1081,48 +1017,31 @@
                             pointBackgroundColor: '#ffffff', 
                             pointBorderColor: '#3B82F6', 
                             pointBorderWidth: 2,
-                            pointRadius: 4
+                            pointRadius: 3
                         }
                     ]
                 },
                 options: { 
-                    layout: {
-                        padding: { top: 25, bottom: 20 }
-                    },
+                    layout: { padding: { top: 20, bottom: 10 } },
                     responsive:true, 
                     maintainAspectRatio:false, 
                     plugins:{
                         legend:{ display:false },
-                        tooltip: {
-                            backgroundColor: '#0F172A',
-                            titleFont: { size: 12, weight: 'bold' },
-                            padding: 10,
-                            cornerRadius: 8
-                        },
+                        tooltip: { backgroundColor: '#0F172A', titleFont: { size: 11 }, bodyFont:{size: 11}, padding: 8, cornerRadius: 6 },
                         datalabels: {
-                            display: function(context) {
-                                return context.dataset.label === 'Qty Selisih';
-                            },
-                            color: function(context) {
-                                return context.dataset.data[context.dataIndex] < 0 ? '#EF4444' : '#10B981';
-                            },
-                            font: { weight: '800', size: 10, family: 'Inter' },
-                            anchor: function(context) {
-                                return context.dataset.data[context.dataIndex] < 0 ? 'start' : 'end';
-                            },
-                            align: function(context) {
-                                return context.dataset.data[context.dataIndex] < 0 ? 'bottom' : 'top';
-                            },
-                            formatter: function(value) {
-                                return value !== 0 ? value.toLocaleString('id-ID') : '0';
-                            },
-                            offset: 4
+                            display: function(context) { return context.dataset.label === 'Qty Selisih'; },
+                            color: function(context) { return context.dataset.data[context.dataIndex] < 0 ? '#EF4444' : '#10B981'; },
+                            font: { weight: '800', size: 9, family: 'Inter' },
+                            anchor: function(context) { return context.dataset.data[context.dataIndex] < 0 ? 'start' : 'end'; },
+                            align: function(context) { return context.dataset.data[context.dataIndex] < 0 ? 'bottom' : 'top'; },
+                            formatter: function(value) { return value !== 0 ? value.toLocaleString('id-ID') : '0'; },
+                            offset: 2
                         }
                     }, 
                     scales:{ 
-                        x:{ grid:{ display:false }, ticks: { font: { size: 10, weight: '600' } } }, 
-                        y:{ type:'linear', position:'left', border:{ display:false }, grid:{ color:'#F1F5F9' }, ticks:{ font:{ size:10 } } }, 
-                        y1:{ type:'linear', position:'right', grid:{ drawOnChartArea:false }, ticks:{ font:{ size:10 } } } 
+                        x:{ grid:{ display:false }, ticks: { font: { size: 9, weight: '600' } } }, 
+                        y:{ type:'linear', position:'left', border:{ display:false }, grid:{ color:'#F1F5F9' }, ticks:{ font:{ size:9 } } }, 
+                        y1:{ type:'linear', position:'right', grid:{ drawOnChartArea:false }, ticks:{ font:{ size:9 } } } 
                     } 
                 }
             });
@@ -1138,15 +1057,27 @@
 
                 let textClass = s < 0 ? 'text-rose-600' : s > 0 ? 'text-emerald-600' : 'text-slate-600';
                 
+                // Desain Card Responsive untuk modal history
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition border-l-2 ${s < 0 ? 'border-l-rose-500' : s > 0 ? 'border-l-emerald-500' : 'border-l-transparent'}">
-                        <td class="px-4 py-2.5 font-bold text-slate-800">${data.labels[i]}</td>
-                        <td class="px-4 py-2.5 text-right font-mono font-black ${textClass}">${s.toLocaleString('id-ID')}</td>
-                        <td class="px-4 py-2.5 text-right font-mono font-semibold text-slate-500">${p.toFixed(2)}%</td>
-                        <td class="px-4 py-2.5">
-                            <div class="flex gap-2 w-full items-center bg-white border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent shadow-sm">
-                                <input type="text" id="mod_nt_${absoluteIdx}" class="w-full text-xs px-3 py-2 bg-transparent outline-none text-slate-800 font-medium placeholder-slate-400" placeholder="Ketik alasan / catatan WOR..." value="${c}">
-                                <button id="mod_nb_${absoluteIdx}" onclick="saveModalNote('${matCode}', ${absoluteIdx})" class="bg-slate-900 text-white px-3 py-2 hover:bg-blue-600 transition flex items-center justify-center min-w-[38px] shrink-0" title="Simpan Catatan">
+                    <tr class="flex flex-col sm:table-row bg-white border sm:border-0 border-slate-200 sm:border-b sm:border-slate-100 rounded-xl sm:rounded-none p-3 sm:p-0 shadow-sm sm:shadow-none hover:bg-slate-50 transition border-l-4 sm:border-l-2 ${s < 0 ? 'border-l-rose-500' : s > 0 ? 'border-l-emerald-500' : 'border-l-transparent'}">
+                        
+                        <!-- Header Mobile (Minggu & Selisih) -->
+                        <div class="flex justify-between items-center sm:hidden mb-2 pb-2 border-b border-slate-100">
+                            <span class="text-[11px] font-bold text-slate-800 flex items-center gap-1.5"><i class="far fa-calendar-alt text-slate-400"></i> ${data.labels[i]}</span>
+                            <div class="font-mono font-black text-xs ${textClass}">${s.toLocaleString('id-ID')} <span class="text-[9px] text-slate-500 font-medium">(${p.toFixed(2)}%)</span></div>
+                        </div>
+
+                        <!-- Sel Desktop -->
+                        <td class="hidden sm:table-cell px-4 py-2.5 font-bold text-slate-800">${data.labels[i]}</td>
+                        <td class="hidden sm:table-cell px-4 py-2.5 text-right font-mono font-black ${textClass}">${s.toLocaleString('id-ID')}</td>
+                        <td class="hidden sm:table-cell px-4 py-2.5 text-right font-mono font-semibold text-slate-500">${p.toFixed(2)}%</td>
+                        
+                        <!-- Input Catatan WOR -->
+                        <td class="sm:px-4 sm:py-2.5 w-full">
+                            <div class="sm:hidden text-[9px] font-bold text-slate-500 uppercase mb-1">Catatan Analisis:</div>
+                            <div class="flex gap-1.5 sm:gap-2 w-full items-center bg-slate-50 sm:bg-white border border-slate-200 rounded-lg sm:rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent shadow-sm">
+                                <input type="text" id="mod_nt_${absoluteIdx}" class="w-full text-[11px] sm:text-xs px-2.5 py-2 bg-transparent outline-none text-slate-800 font-medium placeholder-slate-400" placeholder="Alasan / Catatan WOR..." value="${c}">
+                                <button id="mod_nb_${absoluteIdx}" onclick="saveModalNote('${matCode}', ${absoluteIdx})" class="bg-slate-900 text-white px-3 py-2 hover:bg-blue-600 transition flex items-center justify-center min-w-[36px] sm:min-w-[38px] shrink-0" title="Simpan">
                                     <i class="fas fa-save text-xs"></i>
                                 </button>
                             </div>
@@ -1185,7 +1116,7 @@
                 if(res && res.success) {
                     btn.innerHTML = '<i class="fas fa-check text-xs"></i>'; 
                     btn.className = btn.className.replace('bg-slate-900', 'bg-emerald-500');
-                    showToast('Catatan WOR tersimpan ke Spreadsheet', 'success');
+                    showToast('Tersimpan ke Server', 'success');
                     
                     setTimeout(() => { 
                         btn.innerHTML = origHTML; 
@@ -1197,7 +1128,7 @@
                 }
             } catch(e) { 
                 console.warn(e);
-                showToast("Gagal menyimpan catatan ke server.", "error"); 
+                showToast("Gagal menyimpan ke server.", "error"); 
                 btn.innerHTML = origHTML; 
                 btn.disabled = false; 
             }
@@ -1236,16 +1167,11 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
-            showToast("File CSV berhasil diunduh!", "success");
         }
 
         function openWhatsAppReportModal() {
             toggleExportMenu();
-            if (!allWeeklyData.length) {
-                showToast("Muat data terlebih dahulu", "error");
-                return;
-            }
+            if (!allWeeklyData.length) return;
 
             const minusItems = allWeeklyData.filter(i => i.selisih < 0);
             const surplusItems = allWeeklyData.filter(i => i.selisih > 0);
@@ -1268,22 +1194,19 @@
                     text += `${idx+1}. *${m.nama}* (${m.kode})\n   👉 Selisih: *${m.selisih.toLocaleString('id-ID')}* (${m.persentase}%)\n`;
                 });
             }
-
             text += `\n_Laporan dibuat otomatis via VarianceGwip Pro_`;
 
             document.getElementById('waReportTextarea').value = text;
             document.getElementById('waReportModal').classList.remove('hidden');
         }
 
-        function closeWaModal() {
-            document.getElementById('waReportModal').classList.add('hidden');
-        }
+        function closeWaModal() { document.getElementById('waReportModal').classList.add('hidden'); }
 
         function copyWaReportToClipboard() {
             const textarea = document.getElementById('waReportTextarea');
             textarea.select();
             document.execCommand('copy');
-            showToast("Teks Laporan WA disalin ke Clipboard!", "success");
+            showToast("Disalin ke Clipboard!", "success");
             closeWaModal();
         }
 
@@ -1291,38 +1214,14 @@
             const manifestData = {
                 "name": "VarianceGwip Pro",
                 "short_name": "VariancePro",
-                "description": "Dashboard Monitoring Selisih Material Realtime",
                 "display": "standalone",
                 "start_url": "./",
-                "background_color": "#0F172A",
-                "theme_color": "#0F172A",
-                "icons": [
-                    {
-                        "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzBGMTcyQSIvPjwvc3ZnPg==",
-                        "sizes": "192x192",
-                        "type": "image/svg+xml"
-                    }
-                ]
+                "background_color": "#ffffff",
+                "theme_color": "#ffffff"
+                "icon": src: "https://www.image2url.com/r2/default/files/1789446552363-56719279-933a-4e4e-b52b-40e55d8058f7.png", sizes: "512x512", type: "image/png"
             };
-            
             const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
             document.getElementById('manifest-placeholder').href = URL.createObjectURL(manifestBlob);
-
-            if ('serviceWorker' in navigator) {
-                const swCode = `
-                    const CACHE_NAME = 'variance-pro-v4';
-                    self.addEventListener('install', event => { self.skipWaiting(); });
-                    self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
-                    self.addEventListener('fetch', event => {
-                        if (event.request.url.includes('script.google.com')) return; 
-                        event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
-                    });
-                `;
-                const swBlob = new Blob([swCode], {type: 'application/javascript'});
-                navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-                    .then(() => console.log('PWA Service Worker Aktif!'))
-                    .catch(error => console.warn('SW Error:', error));
-            }
         });
     </script>
 </body>
