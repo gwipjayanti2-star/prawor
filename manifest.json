@@ -2,7 +2,7 @@
 "name": "VarianceGwip Pro",
 "short_name": "VariancePro",
 "description": "Dashboard monitoring selisih material cerdas, modern, dan realtime.",
-"start_url": "/index.html",
+"start_url": "./index.html",
 "display": "standalone",
 "background_color": "#0F172A",
 "theme_color": "#0F172A",
