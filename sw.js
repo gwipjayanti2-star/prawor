@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mpp-apps-v1';
+const CACHE_NAME = 'variance-gwip-v1';
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json',
