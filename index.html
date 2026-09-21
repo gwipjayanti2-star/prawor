@@ -10,7 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="description" content="Dashboard monitoring selisih material cerdas, modern, dan realtime.">
     
-    <link id="manifest-placeholder" rel="manifest" href="">
+    <!-- Link ke manifest eksternal -->
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -861,12 +862,9 @@
                     statusBadge = '<span class="px-2 py-0.5 md:px-2.5 md:py-1 bg-slate-100 text-slate-500 rounded-md md:rounded-lg border border-slate-200 text-[9px] md:text-[10px] font-bold uppercase tracking-wide inline-flex items-center gap-1"><i class="fas fa-check text-[7px] md:text-[8px]"></i> Sesuai</span>';
                 }
 
-                // Desain responsif: Menjadi Card vertikal di mobile, row tabel di desktop.
-                // Selisih didekatkan di bawah nama pada mode mobile.
                 tbody.innerHTML += `
                     <tr class="flex flex-col md:table-row bg-white border md:border-0 border-slate-200 md:border-b md:border-slate-100 rounded-xl md:rounded-none p-3 md:p-0 shadow-sm md:shadow-none hover:bg-blue-50/40 transition duration-150 border-l-4 md:border-l-2 ${s < 0 ? 'border-l-rose-500' : s > 0 ? 'border-l-emerald-500' : 'border-l-transparent'}">
                         
-                        <!-- Header Mobile (Kode & Status) -->
                         <div class="flex justify-between items-center md:hidden mb-2 pb-2 border-b border-slate-100">
                             <div class="flex items-center gap-2">
                                 <span class="text-[9px] font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">#${idx + 1}</span>
@@ -875,16 +873,13 @@
                             <div>${statusBadge}</div>
                         </div>
 
-                        <!-- Sel Desktop -->
                         <td class="hidden md:table-cell px-4 py-3 text-center text-slate-400 font-semibold">${idx + 1}</td>
                         <td class="hidden md:table-cell px-4 py-3 font-mono text-blue-600 font-bold">${item.kode}</td>
                         
-                        <!-- Nama Material (Kelihatan di semua) -->
                         <td class="md:px-4 md:py-3 mb-1.5 md:mb-0">
                             <div class="font-bold text-slate-800 text-[13px] md:text-xs leading-tight">${item.nama}</div>
                         </td>
                         
-                        <!-- Selisih Qty (Dikelompokkan rapi di mobile) -->
                         <td class="md:px-4 md:py-3 md:text-right flex items-center justify-between md:table-cell mb-2 md:mb-0 bg-slate-50 md:bg-transparent px-2.5 py-2 md:p-0 rounded-lg">
                             <div class="md:hidden flex flex-col gap-0.5">
                                 <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">Selisih Fisik</span>
@@ -894,18 +889,15 @@
                                 <div class="font-mono font-black text-[13px] md:text-xs ${textClass}">${s.toLocaleString('id-ID')}</div>
                                 <div class="md:hidden font-mono font-bold text-[11px] text-slate-500 mt-0.5">${p > 0 ? '+' : ''}${p}%</div>
                             </div>
-                            <!-- Bar Desktop -->
                             ${s !== 0 ? `
                             <div class="hidden md:block w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden ml-auto max-w-[120px]">
                                 <div class="${barBg} h-full rounded-full" style="width: ${absWidthPercent}%"></div>
                             </div>` : ''}
                         </td>
                         
-                        <!-- Sel Desktop Varian & Status -->
                         <td class="hidden md:table-cell px-4 py-3 text-right font-mono font-semibold text-slate-500">${p > 0 ? '+' : ''}${p}%</td>
                         <td class="hidden md:table-cell px-4 py-3 text-center">${statusBadge}</td>
                         
-                        <!-- Aksi -->
                         <td class="md:px-4 md:py-3 text-center mt-1 md:mt-0 pt-2 md:pt-0 border-t border-slate-100 md:border-0">
                             <button onclick="openDetailModal('${item.kode}', '${item.nama.replace(/'/g, "\\'")}')" class="px-3 py-2 md:py-1.5 bg-white border border-slate-300 rounded-lg md:rounded-xl text-slate-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition shadow-sm text-[10px] font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 w-full md:w-auto md:mx-auto">
                                 <i class="fas fa-chart-line text-[11px] md:text-xs"></i> <span class="md:hidden">Lihat </span>Detail
@@ -1057,22 +1049,18 @@
 
                 let textClass = s < 0 ? 'text-rose-600' : s > 0 ? 'text-emerald-600' : 'text-slate-600';
                 
-                // Desain Card Responsive untuk modal history
                 tbody.innerHTML += `
                     <tr class="flex flex-col sm:table-row bg-white border sm:border-0 border-slate-200 sm:border-b sm:border-slate-100 rounded-xl sm:rounded-none p-3 sm:p-0 shadow-sm sm:shadow-none hover:bg-slate-50 transition border-l-4 sm:border-l-2 ${s < 0 ? 'border-l-rose-500' : s > 0 ? 'border-l-emerald-500' : 'border-l-transparent'}">
                         
-                        <!-- Header Mobile (Minggu & Selisih) -->
                         <div class="flex justify-between items-center sm:hidden mb-2 pb-2 border-b border-slate-100">
                             <span class="text-[11px] font-bold text-slate-800 flex items-center gap-1.5"><i class="far fa-calendar-alt text-slate-400"></i> ${data.labels[i]}</span>
                             <div class="font-mono font-black text-xs ${textClass}">${s.toLocaleString('id-ID')} <span class="text-[9px] text-slate-500 font-medium">(${p.toFixed(2)}%)</span></div>
                         </div>
 
-                        <!-- Sel Desktop -->
                         <td class="hidden sm:table-cell px-4 py-2.5 font-bold text-slate-800">${data.labels[i]}</td>
                         <td class="hidden sm:table-cell px-4 py-2.5 text-right font-mono font-black ${textClass}">${s.toLocaleString('id-ID')}</td>
                         <td class="hidden sm:table-cell px-4 py-2.5 text-right font-mono font-semibold text-slate-500">${p.toFixed(2)}%</td>
                         
-                        <!-- Input Catatan WOR -->
                         <td class="sm:px-4 sm:py-2.5 w-full">
                             <div class="sm:hidden text-[9px] font-bold text-slate-500 uppercase mb-1">Catatan Analisis:</div>
                             <div class="flex gap-1.5 sm:gap-2 w-full items-center bg-slate-50 sm:bg-white border border-slate-200 rounded-lg sm:rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent shadow-sm">
@@ -1210,18 +1198,23 @@
             closeWaModal();
         }
 
-        window.addEventListener('load', () => {
-            const manifestData = {
-                "name": "VarianceGwip Pro",
-                "short_name": "VariancePro",
-                "display": "standalone",
-                "start_url": "./",
-                "background_color": "#0F172A",
-                "theme_color": "#0F172A"
-            };
-            const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
-            document.getElementById('manifest-placeholder').href = URL.createObjectURL(manifestBlob);
-        });
+        // Daftarkan Service Worker untuk kapabilitas PWA dan Install App
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Cek protokol untuk menghindari error di mode preview (seperti blob: atau file:)
+                if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(registration => {
+                            console.log('[PWA] Service Worker terdaftar dengan sukses di scope:', registration.scope);
+                        })
+                        .catch(error => {
+                            console.error('[PWA] Pendaftaran Service Worker gagal:', error);
+                        });
+                } else {
+                    console.log('[PWA] Pendaftaran Service Worker dilewati karena berjalan di mode preview/lokal.');
+                }
+            });
+        }
     </script>
 </body>
 </html>
